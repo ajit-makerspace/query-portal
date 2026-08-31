@@ -124,9 +124,9 @@ export default function Home() {
                 onChange={(e) => setActiveTab(e.target.value)}
                 className="appearance-none bg-slate-50 border border-slate-300 hover:border-slate-400 font-bold text-xs sm:text-sm text-slate-800 rounded-lg pl-3 pr-8 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-600 cursor-pointer transition"
               >
-                <option value="all">All Data ({allData.length})</option>
-                <option value="qonevo">Qonevo Site ({qonevoData.length})</option>
-                <option value="makerspace">Makerspace Site ({makerspaceData.length})</option>
+                <option value="all">All Data</option>
+                <option value="qonevo">Qonevo Site</option>
+                <option value="makerspace">Makerspace Site</option>
               </select>
               <div className="absolute right-2.5 pointer-events-none text-slate-500">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
