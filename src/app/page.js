@@ -5,8 +5,13 @@ import Navbar from './components/Navbar';
 import StatsCards from './components/StatsCards';
 import DataTable from './components/DataTable';
 import DetailModal from './components/DetailModal';
+import LoginPage from './components/LoginPage';
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
+
   const [activeTab, setActiveTab] = useState('all');
   const [allData, setAllData] = useState([]);
   const [qonevoData, setQonevoData] = useState([]);
@@ -14,7 +19,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // Check auth session on mount
   useEffect(() => {
+    const session = localStorage.getItem('synergy_auth_session');
+    const storedEmail = localStorage.getItem('synergy_auth_user');
+    if (session === 'true') {
+      setIsAuthenticated(true);
+      setUserEmail(storedEmail || 'synergyglobal@yopmail.com');
+    }
+    setCheckingAuth(false);
+  }, []);
+
+  // Fetch submissions data when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     async function fetchData() {
       setLoading(true);
       try {
@@ -35,7 +54,33 @@ export default function Home() {
     }
 
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('synergy_auth_session');
+    localStorage.removeItem('synergy_auth_user');
+    setIsAuthenticated(false);
+    setUserEmail('');
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    setUserEmail(localStorage.getItem('synergy_auth_user') || 'synergyglobal@yopmail.com');
+  };
+
+  // Show loading spinner while checking local auth session
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Render Login Page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
 
   // Determine current active list to pass to DataTable
   const currentData = activeTab === 'qonevo' 
@@ -54,6 +99,8 @@ export default function Home() {
         totalCount={allData.length}
         qonevoCount={qonevoData.length}
         makerspaceCount={makerspaceData.length}
+        userEmail={userEmail}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
@@ -69,11 +116,6 @@ export default function Home() {
               Centralized tabular view for <strong className="text-indigo-600 font-semibold">Qonevo</strong> & <strong className="text-emerald-600 font-semibold">Makerspace Site</strong> databases.
             </p>
           </div>
-
-          {/* <div className="flex items-center space-x-2 text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs self-start sm:self-auto">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-slate-600 font-medium">DB Connection Status: Ready (Mock/Active)</span>
-          </div> */}
         </div>
 
         {/* Overview KPI Stats Cards */}
