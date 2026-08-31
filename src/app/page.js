@@ -70,10 +70,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs self-start sm:self-auto">
+          {/* <div className="flex items-center space-x-2 text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs self-start sm:self-auto">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-slate-600 font-medium">DB Connection Status: Ready (Mock/Active)</span>
-          </div>
+          </div> */}
         </div>
 
         {/* Overview KPI Stats Cards */}

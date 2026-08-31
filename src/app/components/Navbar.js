@@ -8,22 +8,17 @@ export default function Navbar({ activeTab, setActiveTab, totalCount, qonevoCoun
           
           {/* Brand Logo & Title */}
           <div className="flex items-center space-x-3">
-            <div className="flex items-center bg-white px-3 py-1.5 rounded-xl shadow-sm">
+            <div className="flex items-center bg-white px-3.5 py-1.5 rounded-xl shadow-xs">
               <img
                 src="/synergy-logo.png"
                 alt="Synergy Logo"
                 className="h-6 sm:h-7 object-contain"
               />
-              <span className="text-slate-300 mx-2 text-sm font-light">|</span>
-              <div className="flex items-center space-x-1.5">
-                <img
-                  src="/logo.png"
-                  alt="Icon"
-                  className="w-4 h-4 object-contain"
-                />
-                <span className="font-bold text-sm sm:text-base text-slate-900 tracking-tight">Query Hub</span>
-              </div>
             </div>
+
+            <span className="font-bold text-base sm:text-lg text-white tracking-tight">
+              Query Hub
+            </span>
 
             <span className="hidden md:inline-block text-xs font-semibold px-2.5 py-1 bg-slate-800 text-slate-300 rounded-full border border-slate-700">
               Makerspace & Qonevo Portal
