@@ -1,69 +1,115 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import StatsCards from './components/StatsCards';
+import DataTable from './components/DataTable';
+import DetailModal from './components/DetailModal';
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState('all');
+  const [allData, setAllData] = useState([]);
+  const [qonevoData, setQonevoData] = useState([]);
+  const [makerspaceData, setMakerspaceData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const [resAll, resQonevo, resMakerspace] = await Promise.all([
+          fetch('/api/all-submissions').then(res => res.json()),
+          fetch('/api/qonevo').then(res => res.json()),
+          fetch('/api/makerspace').then(res => res.json())
+        ]);
+
+        if (resAll.success) setAllData(resAll.data);
+        if (resQonevo.success) setQonevoData(resQonevo.data);
+        if (resMakerspace.success) setMakerspaceData(resMakerspace.data);
+      } catch (err) {
+        console.error("Failed to load submissions data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // Determine current active list to pass to DataTable
+  const currentData = activeTab === 'qonevo' 
+    ? qonevoData 
+    : activeTab === 'makerspace' 
+      ? makerspaceData 
+      : allData;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans">
+      
+      {/* Top Header Navigation */}
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        totalCount={allData.length}
+        qonevoCount={qonevoData.length}
+        makerspaceCount={makerspaceData.length}
+      />
+
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Page Heading & Intro */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Contact & Enquiry Submissions
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Centralized tabular view for <strong className="text-indigo-600 font-semibold">Qonevo</strong> & <strong className="text-emerald-600 font-semibold">Makerspace Site</strong> databases.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-2 text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs self-start sm:self-auto">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-slate-600 font-medium">DB Connection Status: Ready (Mock/Active)</span>
+          </div>
+        </div>
+
+        {/* Overview KPI Stats Cards */}
+        <StatsCards
+          totalCount={allData.length}
+          qonevoCount={qonevoData.length}
+          makerspaceCount={makerspaceData.length}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {/* Tabular Data View */}
+        {loading ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-xs">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-blue-600 mb-3"></div>
+            <p className="text-sm font-medium text-slate-600">Loading submissions dataset...</p>
+          </div>
+        ) : (
+          <DataTable
+            data={currentData}
+            activeTab={activeTab}
+            onSelectRow={(item) => setSelectedItem(item)}
+          />
+        )}
+
       </main>
+
+      {/* Detail Drawer Modal */}
+      <DetailModal
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+        Synergy | Qonevo & Makerspace Data Dashboard &copy; 2026
+      </footer>
+
     </div>
   );
 }
