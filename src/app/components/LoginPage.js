@@ -9,8 +9,8 @@ export default function LoginPage({ onLoginSuccess }) {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const HARDCODED_EMAIL = "synergyglobal@yopmail.com";
-  const HARDCODED_PASSWORD = "synergy@1234";
+  const VALID_EMAIL = (process.env.NEXT_PUBLIC_LOGIN_EMAIL || "synergyglobal@yopmail.com").trim().toLowerCase();
+  const VALID_PASSWORD = process.env.NEXT_PUBLIC_LOGIN_PASSWORD || "synergy@1234";
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -19,11 +19,11 @@ export default function LoginPage({ onLoginSuccess }) {
 
     setTimeout(() => {
       if (
-        email.trim().toLowerCase() === HARDCODED_EMAIL &&
-        password === HARDCODED_PASSWORD
+        email.trim().toLowerCase() === VALID_EMAIL &&
+        password === VALID_PASSWORD
       ) {
         localStorage.setItem("synergy_auth_session", "true");
-        localStorage.setItem("synergy_auth_user", HARDCODED_EMAIL);
+        localStorage.setItem("synergy_auth_user", VALID_EMAIL);
         onLoginSuccess();
       } else {
         setError("Invalid email address or password. Please try again.");
