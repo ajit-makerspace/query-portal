@@ -17,7 +17,7 @@ export default function Navbar({ userEmail, onLogout }) {
             </div>
 
             <span className="font-bold text-base sm:text-lg text-slate-800 bg-[#f8f9fa] tracking-tight">
-              Query Hub
+              Query Portal
             </span>
 
             <span className="hidden md:inline-block text-xs font-semibold px-2.5 py-1 bg-slate-900 text-slate-300 rounded-full border border-slate-700">
