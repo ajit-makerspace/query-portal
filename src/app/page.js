@@ -5,8 +5,13 @@ import Navbar from './components/Navbar';
 import StatsCards from './components/StatsCards';
 import DataTable from './components/DataTable';
 import DetailModal from './components/DetailModal';
+import LoginPage from './components/LoginPage';
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
+
   const [activeTab, setActiveTab] = useState('all');
   const [allData, setAllData] = useState([]);
   const [qonevoData, setQonevoData] = useState([]);
@@ -14,7 +19,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // Check auth session on mount
   useEffect(() => {
+    const session = localStorage.getItem('synergy_auth_session');
+    const storedEmail = localStorage.getItem('synergy_auth_user');
+    if (session === 'true') {
+      setIsAuthenticated(true);
+      setUserEmail(storedEmail || 'synergyglobal@yopmail.com');
+    }
+    setCheckingAuth(false);
+  }, []);
+
+  // Fetch submissions data when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     async function fetchData() {
       setLoading(true);
       try {
@@ -35,7 +54,33 @@ export default function Home() {
     }
 
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('synergy_auth_session');
+    localStorage.removeItem('synergy_auth_user');
+    setIsAuthenticated(false);
+    setUserEmail('');
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    setUserEmail(localStorage.getItem('synergy_auth_user') || 'synergyglobal@yopmail.com');
+  };
+
+  // Show loading spinner while checking local auth session
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Render Login Page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
 
   // Determine current active list to pass to DataTable
   const currentData = activeTab === 'qonevo' 
@@ -49,18 +94,15 @@ export default function Home() {
       
       {/* Top Header Navigation */}
       <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        totalCount={allData.length}
-        qonevoCount={qonevoData.length}
-        makerspaceCount={makerspaceData.length}
+        userEmail={userEmail}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Page Heading & Intro */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        {/* Page Heading & Source Filter Controls */}
+        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Contact & Enquiry Submissions
@@ -70,10 +112,29 @@ export default function Home() {
             </p>
           </div>
 
-          {/* <div className="flex items-center space-x-2 text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs self-start sm:self-auto">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-slate-600 font-medium">DB Connection Status: Ready (Mock/Active)</span>
-          </div> */}
+          {/* Filter Dropdown */}
+          <div className="flex items-center space-x-2.5 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-2xs self-start md:self-auto">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+              Select Source:
+            </span>
+            <div className="relative flex items-center">
+              <select
+                id="source-filter"
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value)}
+                className="appearance-none bg-slate-50 border border-slate-300 hover:border-slate-400 font-bold text-xs sm:text-sm text-slate-800 rounded-lg pl-3 pr-8 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-600 cursor-pointer transition"
+              >
+                <option value="all">All Data</option>
+                <option value="qonevo">Qonevo Site</option>
+                <option value="makerspace">Makerspace Site</option>
+              </select>
+              <div className="absolute right-2.5 pointer-events-none text-slate-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Overview KPI Stats Cards */}
