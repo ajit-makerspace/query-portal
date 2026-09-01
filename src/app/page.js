@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import StatsCards from './components/StatsCards';
 import DataTable from './components/DataTable';
@@ -18,6 +18,19 @@ export default function Home() {
   const [makerspaceData, setMakerspaceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+const [isSourceOpen, setIsSourceOpen] = useState(false);
+const sourceDropdownRef = useRef(null);
+
+useEffect(() => {
+  function handleClickOutside(e) {
+    if (sourceDropdownRef.current && !sourceDropdownRef.current.contains(e.target)) {
+      setIsSourceOpen(false);
+    }
+  }
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
 
   // Check auth session on mount
   useEffect(() => {
@@ -56,13 +69,29 @@ export default function Home() {
     fetchData();
   }, [isAuthenticated]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('synergy_auth_session');
-    localStorage.removeItem('synergy_auth_user');
-    setIsAuthenticated(false);
-    setUserEmail('');
-  };
+  // const handleLogout = () => {
+  //   localStorage.removeItem('synergy_auth_session');
+  //   localStorage.removeItem('synergy_auth_user');
+  //   setIsAuthenticated(false);
+  //   setUserEmail('');
+  // };
 
+  const handleLogout = () => {
+  setShowLogoutConfirm(true);
+};
+
+const confirmLogout = () => {
+  localStorage.removeItem("synergy_auth_session");
+  localStorage.removeItem("synergy_auth_user");
+
+  setIsAuthenticated(false);
+  setUserEmail("");
+  setShowLogoutConfirm(false);
+};
+
+const cancelLogout = () => {
+  setShowLogoutConfirm(false);
+};
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
     setUserEmail(localStorage.getItem('synergy_auth_user') || 'synergyglobal@yopmail.com');
@@ -104,7 +133,7 @@ export default function Home() {
         {/* Page Heading & Source Filter Controls */}
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-700 ">
               Contact & Enquiry Submissions
             </h1>
             <p className="text-sm text-slate-500 mt-1">
@@ -112,29 +141,70 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Filter Dropdown */}
-          <div className="flex items-center space-x-2.5 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-2xs self-start md:self-auto">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
-              Select Source:
-            </span>
-            <div className="relative flex items-center">
-              <select
-                id="source-filter"
-                value={activeTab}
-                onChange={(e) => setActiveTab(e.target.value)}
-                className="appearance-none bg-slate-50 border border-slate-300 hover:border-slate-400 font-bold text-xs sm:text-sm text-slate-800 rounded-lg pl-3 pr-8 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-600 cursor-pointer transition"
-              >
-                <option value="all">All Data</option>
-                <option value="qonevo">Qonevo Site</option>
-                <option value="makerspace">Makerspace Site</option>
-              </select>
-              <div className="absolute right-2.5 pointer-events-none text-slate-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
-          </div>
+         {/* Filter Dropdown */}
+{/* Filter Dropdown - Custom (opens downwards) */}
+<div className="relative self-start md:self-auto" ref={sourceDropdownRef}>
+  <div className="flex items-center space-x-2.5 bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-xs">
+    <span className="text-xs font-semibold text-slate-700 font-semibold uppercase tracking-wider whitespace-nowrap select-none">
+      Select Source:
+    </span>
+
+    <button
+      type="button"
+      onClick={() => setIsSourceOpen((prev) => !prev)}
+      className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 font-semibold text-xs sm:text-sm text-slate-700 rounded-lg pl-3 pr-2.5 py-1.5 transition-colors cursor-pointer focus:outline-none"
+    >
+      <span>
+        {activeTab === "all" && "All Data"}
+        {activeTab === "qonevo" && "Qonevo Site"}
+        {activeTab === "makerspace" && "Makerspace Site"}
+      </span>
+      <svg
+        className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${isSourceOpen ? "rotate-180" : ""}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+  </div>
+
+  {/* Dropdown menu — always opens BELOW */}
+  {isSourceOpen && (
+    <div className="absolute left-0 top-full mt-1.5 w-full min-w-[180px] bg-gray-100 border border-gray-200 rounded-xl shadow-lg py-1.5 z-50">
+      {[
+        { value: "all", label: "All Data" },
+        { value: "qonevo", label: "Qonevo Site" },
+        { value: "makerspace", label: "Makerspace Site" },
+      ].map((item) => (
+        <button
+          key={item.value}
+          type="button"
+          onClick={() => {
+            setActiveTab(item.value);
+            setIsSourceOpen(false);
+          }}
+          className={`w-full flex items-center gap-2 px-3.5 py-2 text-left text-xs sm:text-sm transition-colors ${
+            activeTab === item.value
+              ? "bg-gray-200 font-bold text-slate-700"
+              : "font-medium text-slate-700 hover:bg-gray-200/70"
+          }`}
+        >
+          {/* Checkmark for selected */}
+          <span className="w-4 flex justify-center">
+            {activeTab === item.value && (
+              <svg className="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </span>
+          {item.label}
+        </button>
+      ))}
+    </div>
+  )}
+</div>
         </div>
 
         {/* Overview KPI Stats Cards */}
@@ -166,6 +236,45 @@ export default function Home() {
         onClose={() => setSelectedItem(null)}
       />
 
+{/* Logout Confirmation Modal */}
+{showLogoutConfirm && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4">
+    
+    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      
+    
+
+      {/* Content */}
+      <h2 className="text-lg font-bold text-slate-800">
+        Confirm Logout
+      </h2>
+
+      <p className="mt-2 text-sm text-slate-500">
+        Are you sure you want to log out? You will need to sign in again to
+        access the dashboard.
+      </p>
+
+      {/* Buttons */}
+      <div className="mt-6 flex justify-end gap-3">
+        
+        <button
+          onClick={cancelLogout}
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={confirmLogout}
+          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900"
+        >
+          Yes, Logout
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
         Synergy | Qonevo & Makerspace Data Dashboard &copy; 2026
