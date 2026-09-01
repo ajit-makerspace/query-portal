@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Query Hub - Qonevo & Makerspace Data",
+  title: "Query Portal",
   description: "Centralized enquiry and contact submissions portal for Qonevo and Makerspace Site",
   icons: {
     icon: "/favicon.png",
