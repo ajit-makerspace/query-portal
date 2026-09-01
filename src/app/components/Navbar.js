@@ -2,13 +2,13 @@
 
 export default function Navbar({ userEmail, onLogout }) {
   return (
-    <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
+    <header className="bg-[#f8f9fa]  bg-[#f8f9fa] text-blue-900 sticky top-0 z-40 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo & Title */}
           <div className="flex items-center space-x-3">
-            <div className="flex items-center bg-white px-3.5 py-1.5 rounded-xl shadow-xs">
+            <div className="flex items-center  px-3.5 py-1.5">
               <img
                 src="/synergy-logo.png"
                 alt="Synergy Logo"
@@ -16,7 +16,7 @@ export default function Navbar({ userEmail, onLogout }) {
               />
             </div>
 
-            <span className="font-bold text-base sm:text-lg text-white tracking-tight">
+            <span className="font-bold text-base sm:text-lg text-slate-800 bg-[#f8f9fa] tracking-tight">
               Query Hub
             </span>
 
@@ -29,13 +29,13 @@ export default function Navbar({ userEmail, onLogout }) {
           {onLogout && (
             <div className="flex items-center space-x-3">
               {userEmail && (
-                <span className="hidden sm:inline-block text-xs text-slate-400 max-w-[180px] truncate" title={userEmail}>
+                <span className="hidden sm:inline-block text-xs text-slate-900 font-semibold max-w-[180px] truncate" title={userEmail}>
                   {userEmail}
                 </span>
               )}
               <button
                 onClick={onLogout}
-                className="px-3.5 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 rounded-lg text-xs font-semibold transition shadow-xs"
+                className="px-3.5 py-1.5 text-slate-900 hover:bg-slate-900 text-slate-900 cursor-pointer hover:text-white border border-blue-900 rounded-lg text-xs font-semibold transition shadow-xs h-8 w-20"
                 title="Sign out of dashboard"
               >
                 Logout
