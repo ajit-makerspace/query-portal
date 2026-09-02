@@ -95,7 +95,7 @@ export default function DetailModal({ item, onClose }) {
 
               <div className="md:col-span-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Designation</label>
-                <p className="text-sm font-medium text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-200 mt-1 inline-block">
+                <p className="text-sm ms-2 font-medium text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-200 mt-1 inline-block">
                   {item.designation || 'N/A'}
                 </p>
               </div>
@@ -134,7 +134,7 @@ export default function DetailModal({ item, onClose }) {
 
               <div className="md:col-span-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Solution Interest</label>
-                <p className="text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 mt-1 inline-block">
+                <p className="text-sm font-medium text-emerald-700 ms-2 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 mt-1 inline-block">
                   {item.solution_interest || 'N/A'}
                 </p>
               </div>

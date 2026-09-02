@@ -21,6 +21,11 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Helper: merge the source-specific "raw" fields onto the normalized item
+  // so the detail modal always has both shapes available, regardless of
+  // which tab (All Data vs a specific source) the row was clicked from.
+  const withRaw = (item) => ({ ...item, ...(item.raw || {}) });
+
   // Filter data based on search query AND date range
   const filteredData = useMemo(() => {
     let result = data;
@@ -77,6 +82,18 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
     return filteredData.slice(start, start + itemsPerPage);
   }, [filteredData, currentPage]);
 
+  // Number of columns for the current tab (used for the empty-state colSpan)
+  const columnCount = activeTab === 'all' ? 6 : 8;
+
+  // Helper: pull the common fields out of any record shape (qonevo / makerspace / labs)
+  const getCommonFields = (item) => ({
+    fullName: item.full_name || `${item.first_name || ''} ${item.last_name || ''}`.trim(),
+    email: item.email || '',
+    phone: item.phone_number || item.phone || '',
+    company: item.company_name || item.institution || item.company_or_institution || '',
+    message: item.help_message || item.comment || item.message || '',
+  });
+
   // Export CSV function
   const handleExportCSV = () => {
     if (!filteredData.length) return;
@@ -128,17 +145,18 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
         `"${item.created_at || ''}"`
       ]);
     } else {
-      headers = ['Source', 'Full Name', 'Email', 'Phone', 'Company/Institution', 'Website/Type/City', 'Message/Comment', 'Date'];
-      rows = filteredData.map(item => [
-        `"${item.source || ''}"`,
-        `"${item.full_name || ''}"`,
-        `"${item.email || ''}"`,
-        `"${item.phone || ''}"`,
-        `"${item.company_or_institution || ''}"`,
-        `"${item.website_or_type || ''}"`,
-        `"${(item.message || '').replace(/"/g, '""')}"`,
-        `"${item.created_at || ''}"`
-      ]);
+      headers = ['Full Name', 'Email', 'Phone', 'Company / Institution', 'Message / Comment', 'Date'];
+      rows = filteredData.map(item => {
+        const f = getCommonFields(item);
+        return [
+          `"${f.fullName}"`,
+          `"${f.email}"`,
+          `"${f.phone}"`,
+          `"${f.company}"`,
+          `"${f.message.replace(/"/g, '""')}"`,
+          `"${item.created_at || ''}"`
+        ];
+      });
     }
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -153,10 +171,10 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      
+
       {/* Table Header Actions Bar */}
       <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col xl:flex-row gap-3 items-center justify-between">
-        
+
         {/* Left Side: Search Input & Entry Counter */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
           {/* Search Input */}
@@ -193,7 +211,7 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
 
         {/* Right Side: Date Range Filter, Source Filter & Export CSV */}
         <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-between xl:justify-end">
-          
+
           {/* Date Range Filter (From & To) */}
           <div className="flex items-center space-x-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-300 shadow-2xs">
             <span className="text-xs font-bold text-slate-600 uppercase tracking-wider select-none pr-1">
@@ -321,7 +339,7 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
       {/* Main Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm text-slate-700">
-          
+
           {/* Dynamic Table Column Headers */}
           <thead className="bg-slate-100/80 text-slate-700 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
             {activeTab === 'qonevo' ? (
@@ -358,12 +376,12 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                 <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             ) : (
+              // "All Data" view: only the 5 common fields + action
               <tr>
-                <th className="py-3.5 px-4">Source</th>
                 <th className="py-3.5 px-4">Full Name</th>
-                <th className="py-3.5 px-4">Contact Info</th>
+                <th className="py-3.5 px-4">Email / Phone</th>
                 <th className="py-3.5 px-4">Company / Institution</th>
-                <th className="py-3.5 px-4">Message / Details</th>
+                <th className="py-3.5 px-4">Message </th>
                 <th className="py-3.5 px-4">Date</th>
                 <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
@@ -374,7 +392,7 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
           <tbody className="divide-y divide-slate-200">
             {paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-slate-400">
+                <td colSpan={columnCount} className="py-12 text-center text-slate-400">
                   <svg className="w-10 h-10 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -384,15 +402,13 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
               </tr>
             ) : (
               paginatedData.map((item, idx) => {
-                const source = item.source || (activeTab === 'qonevo' ? 'Qonevo' : activeTab === 'makerspace' ? 'Makerspace Site' : 'Labs Site');
-
                 return (
                   <tr
                     key={item.id || idx}
                     className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
-                    onClick={() => onSelectRow(item)}
+                    onClick={() => onSelectRow(withRaw(item))}
                   >
-                    
+
                     {/* View: Qonevo Specific */}
                     {activeTab === 'qonevo' && (
                       <>
@@ -467,43 +483,33 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                       </>
                     )}
 
-                    {/* View: Combined All Submissions */}
-                    {activeTab === 'all' && (
-                      <>
-                        <td className="py-3.5 px-4">
-                          <span className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${
-                            source === 'Qonevo'
-                              ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                              : source === 'Makerspace Site'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-purple-50 text-purple-700 border-purple-200'
-                          }`}>
-                            {source}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-semibold text-slate-900">{item.full_name}</td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-medium text-blue-600">{item.email}</div>
-                          <div className="text-xs text-slate-500">{item.phone}</div>
-                        </td>
-                        <td className="py-3.5 px-4 font-medium text-slate-800">
-                          {item.company_or_institution || item.institution || 'N/A'}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600 max-w-[260px] truncate" title={item.message}>
-                          {item.message || 'N/A'}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                          {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
-                        </td>
-                      </>
-                    )}
+                    {/* View: Combined "All Data" — only the 5 common fields */}
+                    {activeTab === 'all' && (() => {
+                      const f = getCommonFields(item);
+                      return (
+                        <>
+                          <td className="py-3.5 px-4 font-semibold text-slate-900">{f.fullName || 'N/A'}</td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-medium text-blue-600">{f.email || 'N/A'}</div>
+                            <div className="text-xs text-slate-500">{f.phone}</div>
+                          </td>
+                          <td className="py-3.5 px-4 font-medium text-slate-800">{f.company || 'N/A'}</td>
+                          <td className="py-3.5 px-4 text-slate-600 max-w-[260px] truncate" title={f.message}>
+                            {f.message || 'N/A'}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                            {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
+                          </td>
+                        </>
+                      );
+                    })()}
 
                     {/* Action button column */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onSelectRow(item);
+                          onSelectRow(withRaw(item));
                         }}
                         className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 transition"
                       >
