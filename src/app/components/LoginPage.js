@@ -8,9 +8,18 @@ export default function LoginPage({ onLoginSuccess }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 500, y: 300 });
 
   const VALID_EMAIL = (process.env.NEXT_PUBLIC_LOGIN_EMAIL || "synergyglobal@yopmail.com").trim().toLowerCase();
   const VALID_PASSWORD = process.env.NEXT_PUBLIC_LOGIN_PASSWORD || "synergy@1234";
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -55,44 +64,8 @@ export default function LoginPage({ onLoginSuccess }) {
 
       <div className="login-box p-4 border border-gray-200 rounded-[20px] shadow-sm bg-gray-100 relative z-10 w-full max-w-[430px]">
         <div className="w-full max-w-[420px] z-10 animate-fadeIn flex flex-col">
-          {/* Header Branding (Original Assets, New Styling) */}
+          {/* Header Branding */}
           <div className="flex flex-col items-center mb-10 text-center">
-            {/* Top Decorative Icon (From reference image) */}
-            <div className="text-gray-300 mb-8 opacity-70">
-              {/* <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  d="M12 2C10.9 2 10 2.9 10 4V5.2C7.7 5.7 6 7.8 6 10.2V16L4 18V19H20V18L18 16V10.2C18 7.8 16.3 5.7 14 5.2V4C14 2.9 13.1 2 12 2ZM12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22Z"
-                  opacity="0.5"
-                />
-                <rect
-                  x="8"
-                  y="11"
-                  width="8"
-                  height="2"
-                  rx="1"
-                  fill="currentColor"
-                />
-                <rect
-                  x="10"
-                  y="14"
-                  width="4"
-                  height="2"
-                  rx="1"
-                  fill="currentColor"
-                />
-              </svg> */}
-            </div>
-
-            {/* <img
-              src="/synergy-logo.png"
-              alt="Synergy Logo"
-              className="h-12 object-contain mb-5"
-            /> */}
             <h2 className="font-black text-[34px] tracking-tight font-medium leading-none text-slate-700 mb-3">
               Query Portal Login
             </h2>
@@ -122,7 +95,7 @@ export default function LoginPage({ onLoginSuccess }) {
               </div>
             )}
 
-            {/* Email Field with Floating Label */}
+            {/* Email Field */}
             <div className="relative">
               <label className="absolute -top-[9px] left-[18px] bg-[#F7F7F7] px-1 text-[13px] font-medium text-gray-900 z-10">
                 Email Address
@@ -139,7 +112,7 @@ export default function LoginPage({ onLoginSuccess }) {
               </div>
             </div>
 
-            {/* Password Field with Floating Label */}
+            {/* Password Field */}
             <div className="relative">
               <label className="absolute -top-[9px] left-[18px] bg-[#F7F7F7] px-1 text-[13px] font-medium text-gray-900 z-10">
                 Password
@@ -197,16 +170,6 @@ export default function LoginPage({ onLoginSuccess }) {
               </div>
             </div>
 
-            {/* Forgot Password */}
-            <div className="flex justify-end pt-1">
-              {/* <a
-                href="#"
-                className="text-[13px] text-gray-500 hover:text-gray-900 transition-colors font-medium"
-              >
-                Forgot Password?
-              </a> */}
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -224,7 +187,7 @@ export default function LoginPage({ onLoginSuccess }) {
             </button>
           </form>
 
-          {/* Footer (Original text, new styling) */}
+          {/* Footer */}
           <div className="mt-14 text-center text-[12.5px] text-gray-400 font-medium">
             Synergy Global Portal &copy; 2026
           </div>
