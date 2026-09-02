@@ -143,3 +143,55 @@ export const mockMakerspaceEnquiries = [
     source: "Makerspace Site"
   }
 ];
+
+export const mockLabsSubmissions = [
+  {
+    id: 201,
+    full_name: "Dr. Rajesh Sharma",
+    phone: "+91 98765 43210",
+    email: "rajesh.sharma@heritage.edu",
+    institution: "Heritage International School",
+    city: "New Delhi",
+    designation: "School Director / Chairman",
+    message: "Looking to set up a 1,200 sq. ft. STEM & Robotics lab for Grades 1-12 with 3D printers and NEP 2020 aligned curriculum.",
+    created_at: "2026-08-31T09:15:00Z",
+    source: "Labs Site"
+  },
+  {
+    id: 202,
+    full_name: "Sunita Roy",
+    phone: "+91 98112 23344",
+    email: "sunita.roy@dpsmumbai.ac.in",
+    institution: "Delhi Public School",
+    city: "Mumbai, Maharashtra",
+    designation: "Vice Principal",
+    message: "Requesting a personalized 3D layout blueprint and equipment catalog for our secondary campus robotics innovation lab.",
+    created_at: "2026-08-30T14:20:10Z",
+    source: "Labs Site"
+  },
+  {
+    id: 203,
+    full_name: "Vikram Joshi",
+    phone: "+91 99887 76655",
+    email: "v.joshi@bits-pilani.ac.in",
+    phone: "+91 99887 76655",
+    institution: "BITS Innovation Cell",
+    city: "Pilani, Rajasthan",
+    designation: "Head of Incubation",
+    message: "Need 21+ lab module specs including AI, Woodworking, and IoT prototyping benches for our undergraduate innovation center.",
+    created_at: "2026-08-29T11:05:40Z",
+    source: "Labs Site"
+  },
+  {
+    id: 204,
+    full_name: "Kavita Reddy",
+    phone: "+91 97411 22334",
+    email: "kavita@oakridge.edu.in",
+    institution: "Oakridge International",
+    city: "Bengaluru, Karnataka",
+    designation: "STEM Lead Teacher",
+    message: "Please send investment proposal and certified teacher enablement timelines for setting up a turn-key Tinkering ecosystem.",
+    created_at: "2026-08-27T16:45:00Z",
+    source: "Labs Site"
+  }
+];

@@ -17,6 +17,8 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
       const email = (item.email || '').toLowerCase();
       const phone = (item.phone_number || item.phone || '').toLowerCase();
       const company = (item.company_name || item.institution || item.company_or_institution || '').toLowerCase();
+      const city = (item.city || '').toLowerCase();
+      const designation = (item.designation || item.role || '').toLowerCase();
       const message = (item.help_message || item.comment || item.message || '').toLowerCase();
 
       return (
@@ -24,6 +26,8 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
         email.includes(query) ||
         phone.includes(query) ||
         company.includes(query) ||
+        city.includes(query) ||
+        designation.includes(query) ||
         message.includes(query)
       );
     });
@@ -73,8 +77,21 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
         `"${(item.comment || '').replace(/"/g, '""')}"`,
         `"${item.created_at || ''}"`
       ]);
+    } else if (activeTab === 'labs') {
+      headers = ['ID', 'Full Name', 'Email', 'Phone', 'School/Institution', 'City', 'Designation', 'Message / Space Details', 'Submitted Date'];
+      rows = filteredData.map(item => [
+        item.id,
+        `"${item.full_name || ''}"`,
+        `"${item.email || ''}"`,
+        `"${item.phone || ''}"`,
+        `"${item.institution || ''}"`,
+        `"${item.city || ''}"`,
+        `"${item.designation || ''}"`,
+        `"${(item.message || '').replace(/"/g, '""')}"`,
+        `"${item.created_at || ''}"`
+      ]);
     } else {
-      headers = ['Source', 'Full Name', 'Email', 'Phone', 'Company/Institution', 'Website/Type', 'Message/Comment', 'Date'];
+      headers = ['Source', 'Full Name', 'Email', 'Phone', 'Company/Institution', 'Website/Type/City', 'Message/Comment', 'Date'];
       rows = filteredData.map(item => [
         `"${item.source || ''}"`,
         `"${item.full_name || ''}"`,
@@ -112,7 +129,7 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
           </div>
           <input
             type="text"
-            placeholder="Search by name, email, company, message..."
+            placeholder="Search by name, email, company, city, message..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -176,6 +193,17 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
                 <th className="py-3.5 px-4">Submitted Date</th>
                 <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
+            ) : activeTab === 'labs' ? (
+              <tr>
+                <th className="py-3.5 px-4">Full Name</th>
+                <th className="py-3.5 px-4">Email & Phone</th>
+                <th className="py-3.5 px-4">School / Institution</th>
+                <th className="py-3.5 px-4">City</th>
+                <th className="py-3.5 px-4">Designation</th>
+                <th className="py-3.5 px-4">Message / Details</th>
+                <th className="py-3.5 px-4">Submitted Date</th>
+                <th className="py-3.5 px-4 text-right">Action</th>
+              </tr>
             ) : (
               <tr>
                 <th className="py-3.5 px-4">Source</th>
@@ -203,7 +231,7 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
               </tr>
             ) : (
               paginatedData.map((item, idx) => {
-                const isQonevo = item.source === 'Qonevo' || activeTab === 'qonevo';
+                const source = item.source || (activeTab === 'qonevo' ? 'Qonevo' : activeTab === 'makerspace' ? 'Makerspace Site' : 'Labs Site');
 
                 return (
                   <tr
@@ -262,16 +290,42 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
                       </>
                     )}
 
+                    {/* View: Labs Specific */}
+                    {activeTab === 'labs' && (
+                      <>
+                        <td className="py-3.5 px-4 font-semibold text-slate-900">{item.full_name}</td>
+                        <td className="py-3.5 px-4">
+                          <div className="font-medium text-blue-600">{item.email}</div>
+                          <div className="text-xs text-slate-500">{item.phone}</div>
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-slate-800">{item.institution || 'N/A'}</td>
+                        <td className="py-3.5 px-4 text-slate-700">{item.city || 'N/A'}</td>
+                        <td className="py-3.5 px-4">
+                          <span className="inline-block bg-purple-50 text-purple-700 border border-purple-200 text-xs px-2 py-0.5 rounded-md font-medium">
+                            {item.designation || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-600 max-w-[250px] truncate" title={item.message}>
+                          {item.message || 'N/A'}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                          {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                      </>
+                    )}
+
                     {/* View: Combined All Submissions */}
                     {activeTab === 'all' && (
                       <>
                         <td className="py-3.5 px-4">
                           <span className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${
-                            isQonevo
+                            source === 'Qonevo'
                               ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : source === 'Makerspace Site'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-purple-50 text-purple-700 border-purple-200'
                           }`}>
-                            {item.source}
+                            {source}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-slate-900">{item.full_name}</td>
@@ -280,7 +334,7 @@ export default function DataTable({ data, activeTab, onSelectRow }) {
                           <div className="text-xs text-slate-500">{item.phone}</div>
                         </td>
                         <td className="py-3.5 px-4 font-medium text-slate-800">
-                          {item.company_or_institution || 'N/A'}
+                          {item.company_or_institution || item.institution || 'N/A'}
                         </td>
                         <td className="py-3.5 px-4 text-slate-600 max-w-[260px] truncate" title={item.message}>
                           {item.message || 'N/A'}
