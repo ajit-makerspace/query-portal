@@ -64,19 +64,19 @@ export default function LoginPage({ onLoginSuccess }) {
 
       <div className="login-box p-6 border border-gray-200 rounded-[24px] shadow-md bg-white relative z-10 w-full max-w-[430px]">
         <div className="w-full max-w-[420px] z-10 animate-fadeIn flex flex-col">
-          
+
           {/* Header Branding */}
           <div className="flex flex-col items-center mb-8 text-center">
             <img
               src="/synergy-logo.png"
               alt="Synergy Global Logo"
-              className="h-10 sm:h-12 w-auto object-contain mb-4"
+              className="h-7 sm:h-8 w-auto object-contain mb-5 opacity-90"
             />
-            <h2 className="font-black text-[28px] tracking-tight font-medium leading-none text-slate-800 mb-2">
+            <h2 className="text-[20px] font-semibold tracking-tight text-slate-800 mb-1.5">
               Query Portal Login
             </h2>
-            <p className="text-[13px] text-gray-500 font-medium max-w-[300px]">
-              Access centralized Qonevo, Makerspace & Labs site submissions
+            <p className="text-[13px] text-gray-500 max-w-[300px] leading-relaxed">
+              Access centralized Qonevo, Makerspace &amp; Labs site submissions
             </p>
           </div>
 
