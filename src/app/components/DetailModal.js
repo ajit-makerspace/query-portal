@@ -4,6 +4,7 @@ export default function DetailModal({ item, onClose }) {
   if (!item) return null;
 
   const isQonevo = item.source === 'Qonevo' || !!item.company_name;
+  const isLabs = item.source === 'Labs Site' || !!item.designation || !!item.city;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -13,9 +14,9 @@ export default function DetailModal({ item, onClose }) {
         <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-              isQonevo ? 'bg-indigo-500 text-white' : 'bg-emerald-500 text-white'
+              isQonevo ? 'bg-indigo-500 text-white' : isLabs ? 'bg-purple-500 text-white' : 'bg-emerald-500 text-white'
             }`}>
-              {item.source || (isQonevo ? 'Qonevo' : 'Makerspace Site')}
+              {item.source || (isQonevo ? 'Qonevo' : isLabs ? 'Labs Site' : 'Makerspace Site')}
             </span>
             <h3 className="text-lg font-bold">Submission Details</h3>
           </div>
@@ -80,6 +81,25 @@ export default function DetailModal({ item, onClose }) {
                 </p>
               </div>
             </div>
+          ) : isLabs ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4">
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">School / Institution</label>
+                <p className="text-sm font-medium text-slate-800 mt-0.5">{item.institution || 'N/A'}</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">City</label>
+                <p className="text-sm text-slate-800 mt-0.5">{item.city || 'N/A'}</p>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Designation</label>
+                <p className="text-sm font-medium text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-200 mt-1 inline-block">
+                  {item.designation || 'N/A'}
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4">
               <div>
@@ -121,10 +141,10 @@ export default function DetailModal({ item, onClose }) {
             </div>
           )}
 
-          {/* Message / Comment Section */}
+          {/* Message / Comment / Space Details Section */}
           <div className="border-t border-slate-200 pt-4">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              {isQonevo ? "How Can We Help?" : "Enquiry Comment"}
+              {isQonevo ? "How Can We Help?" : isLabs ? "Message / Space Details" : "Enquiry Comment"}
             </label>
             <div className="mt-1.5 p-4 bg-slate-50 rounded-xl text-sm text-slate-800 leading-relaxed border border-slate-200">
               {item.help_message || item.comment || item.message || "No message provided."}

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getQonevoContacts } from '@/lib/db';
+import { getLabsSubmissions } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
   try {
-    const data = await getQonevoContacts();
+    const data = await getLabsSubmissions();
     return NextResponse.json({ success: true, count: data.length, data });
   } catch (error) {
     return NextResponse.json(
