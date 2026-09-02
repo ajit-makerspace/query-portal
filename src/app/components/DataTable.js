@@ -268,12 +268,12 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                   onClick={() => setIsSourceOpen((prev) => !prev)}
                   className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-xs text-slate-800 rounded-md px-2.5 py-1 transition-colors cursor-pointer"
                 >
-                  <span>
-                    {activeTab === "all" && "All Data"}
-                    {activeTab === "qonevo" && "Qonevo Site"}
-                    {activeTab === "makerspace" && "Makerspace Site"}
-                    {activeTab === "labs" && "Labs Site"}
-                  </span>
+                 <span className="block max-w-[78px] truncate">
+  {activeTab === "all" && "All Data"}
+  {activeTab === "qonevo" && "Qonevo Site"}
+  {activeTab === "makerspace" && "Makerspace Site"}
+  {activeTab === "labs" && "Labs Site"}
+</span>
                   <svg
                     className={`w-3.5 h-3.5 text-slate-700 transition-transform duration-200 ${isSourceOpen ? "rotate-180" : ""}`}
                     fill="none"

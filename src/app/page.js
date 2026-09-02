@@ -181,7 +181,7 @@ export default function Home() {
                 onClick={confirmLogout}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900"
               >
-                Yes, Logout
+                Logout
               </button>
             </div>
           </div>
