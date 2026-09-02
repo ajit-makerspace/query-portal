@@ -126,7 +126,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Overview KPI Stats Cards */}
+        {/* Overview KPI Stats Cards & Dynamic Monthly Chart (Manages its own chart filter) */}
         <StatsCards
           totalCount={allData.length}
           qonevoCount={qonevoData.length}
@@ -135,7 +135,7 @@ export default function Home() {
           data={allData}
         />
 
-        {/* Tabular Data View */}
+        {/* Tabular Data View (Independent Down Side Data Table) */}
         {loading ? (
           <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-xs">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-blue-600 mb-3"></div>
@@ -181,7 +181,7 @@ export default function Home() {
                 onClick={confirmLogout}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900"
               >
-                Logout
+                Yes, Logout
               </button>
             </div>
           </div>
