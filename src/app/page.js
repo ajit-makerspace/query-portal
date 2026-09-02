@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import StatsCards from './components/StatsCards';
 import DataTable from './components/DataTable';
@@ -20,18 +20,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [isSourceOpen, setIsSourceOpen] = useState(false);
-  const sourceDropdownRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (sourceDropdownRef.current && !sourceDropdownRef.current.contains(e.target)) {
-        setIsSourceOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Check auth session on mount
   useEffect(() => {
@@ -128,81 +116,14 @@ export default function Home() {
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Page Heading & Source Filter Controls */}
-        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-700">
-              Contact & Enquiry Submissions
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Centralized tabular view for <strong className="text-indigo-600 font-semibold">Qonevo</strong>, <strong className="text-emerald-600 font-semibold">Makerspace</strong> & <strong className="text-purple-600 font-semibold">Labs</strong> databases.
-            </p>
-          </div>
-
-          {/* Filter Dropdown */}
-          <div className="relative self-start md:self-auto" ref={sourceDropdownRef}>
-            <div className="flex items-center space-x-2.5 bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-xs">
-              <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider whitespace-nowrap select-none">
-                Select Source:
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setIsSourceOpen((prev) => !prev)}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 font-semibold text-xs sm:text-sm text-slate-700 rounded-lg pl-3 pr-2.5 py-1.5 transition-colors cursor-pointer focus:outline-hidden"
-              >
-                <span>
-                  {activeTab === "all" && "All Data"}
-                  {activeTab === "qonevo" && "Qonevo Site"}
-                  {activeTab === "makerspace" && "Makerspace Site"}
-                  {activeTab === "labs" && "Labs Site"}
-                </span>
-                <svg
-                  className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${isSourceOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Dropdown menu */}
-            {isSourceOpen && (
-              <div className="absolute left-0 top-full mt-1.5 w-full min-w-[180px] bg-gray-100 border border-gray-200 rounded-xl shadow-lg py-1.5 z-50">
-                {[
-                  { value: "all", label: "All Data" },
-                  { value: "qonevo", label: "Qonevo Site" },
-                  { value: "makerspace", label: "Makerspace Site" },
-                  { value: "labs", label: "Labs Site" },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => {
-                      setActiveTab(item.value);
-                      setIsSourceOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2 px-3.5 py-2 text-left text-xs sm:text-sm transition-colors ${
-                      activeTab === item.value
-                        ? "bg-gray-200 font-bold text-slate-700"
-                        : "font-medium text-slate-700 hover:bg-gray-200/70"
-                    }`}
-                  >
-                    <span className="w-4 flex justify-center">
-                      {activeTab === item.value && (
-                        <svg className="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </span>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Page Heading */}
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-700">
+            Contact & Enquiry Submissions
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Centralized tabular view for <strong className="text-indigo-600 font-semibold">Qonevo</strong>, <strong className="text-emerald-600 font-semibold">Makerspace</strong> & <strong className="text-purple-600 font-semibold">Labs</strong> databases.
+          </p>
         </div>
 
         {/* Overview KPI Stats Cards */}
@@ -224,6 +145,7 @@ export default function Home() {
           <DataTable
             data={currentData}
             activeTab={activeTab}
+            setActiveTab={setActiveTab}
             onSelectRow={(item) => setSelectedItem(item)}
           />
         )}
@@ -259,18 +181,12 @@ export default function Home() {
                 onClick={confirmLogout}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900"
               >
-                Yes, Logout
+                Logout
               </button>
             </div>
           </div>
         </div>
       )}
-        <button
-          onClick={confirmLogout}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition cursor-pointer hover:bg-slate-900"
-        >
-          Logout
-        </button>
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
