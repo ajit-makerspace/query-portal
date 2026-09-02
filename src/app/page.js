@@ -265,6 +265,12 @@ export default function Home() {
           </div>
         </div>
       )}
+        <button
+          onClick={confirmLogout}
+          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition cursor-pointer hover:bg-slate-900"
+        >
+          Logout
+        </button>
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
