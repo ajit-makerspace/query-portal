@@ -223,7 +223,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
       {/* LEFT SECTION: Total Submissions Header & 3 Portal Share Cards */}
       <div className="lg:col-span-5 flex flex-col gap-4">
         
-        {/* Total Submissions Main Card (Icon Removed) */}
+        {/* Total Submissions Main Card */}
         <div
           onClick={() => setChartTab('all')}
           style={totalCard.style}
@@ -248,10 +248,10 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
           </div>
         </div>
 
-        {/* Sub-sections: Qonevo, Makerspace & Labs Cards (Icons Removed, Centered) */}
+        {/* Sub-sections: Qonevo, Makerspace & Labs Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
           
-          {/* Qonevo Sub-section (Centered) */}
+          {/* Qonevo Sub-section */}
           <div
             onClick={() => setChartTab('qonevo')}
             style={qonevoCard.style}
@@ -282,7 +282,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             </div>
           </div>
 
-          {/* Makerspace Sub-section (Centered) */}
+          {/* Makerspace Sub-section */}
           <div
             onClick={() => setChartTab('makerspace')}
             style={makerspaceCard.style}
@@ -313,7 +313,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             </div>
           </div>
 
-          {/* Labs Sub-section (Centered) */}
+          {/* Labs Sub-section */}
           <div
             onClick={() => setChartTab('labs')}
             style={labsCard.style}
@@ -364,15 +364,6 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
               <span className="text-[10px] uppercase font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
                 Live Stream
               </span>
-              {chartTab !== 'all' && (
-                <button
-                  onClick={() => setChartTab('all')}
-                  className="text-[10px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2 py-0.5 rounded-md transition cursor-pointer"
-                  title="Reset chart to All Data"
-                >
-                  Reset Filter ✕
-                </button>
-              )}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               {chartTab === 'all'
@@ -637,7 +628,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                 <span className="text-slate-500 font-medium">
                   {chartTab === 'all'
                     ? 'Click any portal card to isolate monthly chart breakdown'
-                    : `Filtered chart view for ${chartTab.toUpperCase()} (Click card or Reset to view all)`}
+                    : `Filtered chart view for ${chartTab.toUpperCase()}`}
                 </span>
               </div>
               <span className="text-slate-400 font-medium">Strict Live Stream</span>
