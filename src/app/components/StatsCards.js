@@ -90,23 +90,43 @@ export default function StatsCards({
 
   // Synergy Dark Navy Logo Colors styling helper for selected cards
   // Outline: #1F314C (Synergy Dark Navy) | Shadow: rgba(31, 49, 76, 0.35)
-  const getCardStyle = (tabKey, paddingClass = "p-4") => {
-    const isSelected = chartTab === tabKey;
-    if (isSelected) {
-      return {
-        style: {
-          borderColor: "#1F314C",
-          boxShadow: "0 8px 25px -4px rgba(31, 49, 76, 0.35), 0 0 0 2px #1F314C",
-          backgroundColor: "#F8FAFC"
-        },
-        className: `${paddingClass} rounded-2xl cursor-pointer transition-all duration-200`
-      };
-    }
+const getCardStyle = (tabKey, paddingClass = "p-4") => {
+  const isSelected = chartTab === tabKey;
+
+  if (isSelected) {
     return {
-      style: {},
-      className: `${paddingClass} rounded-2xl border border-slate-200 bg-white shadow-xs hover:border-slate-300 cursor-pointer transition-all duration-200`
+      style: {
+        borderColor: "#E2E8F0",
+        backgroundColor: "#FFFFFF",
+        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.12)",
+        transform: "translateY(-3px)"
+      },
+      className: `
+        ${paddingClass}
+        rounded-2xl
+        border
+        cursor-pointer
+        transition-all
+        duration-200
+      `
     };
+  }
+
+  return {
+    style: {},
+    className: `
+      ${paddingClass}
+      rounded-2xl
+      border
+      border-slate-200
+      bg-white
+      shadow-xs
+      cursor-pointer
+      transition-all
+      duration-200
+    `
   };
+};
 
   // Compute month-wise breakdown dynamically filtered strictly for the chart
   const monthlyStackedData = useMemo(() => {
