@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 export default function Navbar({ userEmail, userName, onLogout }) {
   const displayName = userName || process.env.NEXT_PUBLIC_USER_NAME || "Synergy Global";
@@ -19,10 +20,13 @@ export default function Navbar({ userEmail, userName, onLogout }) {
           {/* Brand Logo & Title */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center py-1">
-              <img
+              <Image
+              width={200}
+              height={30}
                 src="/synergy-logo.png"
                 alt="Synergy Logo"
                 className="h-7 sm:h-8 w-auto object-contain"
+                
               />
             </div>
 

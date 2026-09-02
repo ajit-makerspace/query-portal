@@ -10,10 +10,7 @@ function useAnimatedCount(targetValue, duration = 2500) {
     let startTimestamp = null;
     const endVal = Number(targetValue) || 0;
 
-    if (endVal === 0) {
-      setCount(0);
-      return;
-    }
+   if (endVal <= 0) return;
 
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
@@ -43,7 +40,7 @@ function useChartProgress(triggerData, duration = 2500) {
 
   useEffect(() => {
     let startTimestamp = null;
-    setProgress(0);
+    
 
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;

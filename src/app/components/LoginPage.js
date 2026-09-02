@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export default function LoginPage({ onLoginSuccess }) {
   const [email, setEmail] = useState("");
@@ -67,7 +68,9 @@ export default function LoginPage({ onLoginSuccess }) {
 
           {/* Header Branding */}
           <div className="flex flex-col items-center mb-8 text-center">
-            <img
+            <Image
+            width={200}
+            height={30}
               src="/synergy-logo.png"
               alt="Synergy Global Logo"
               className="h-7 sm:h-8 w-auto object-contain mb-5 opacity-90"

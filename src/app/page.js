@@ -22,15 +22,21 @@ export default function Home() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Check auth session on mount
-  useEffect(() => {
-    const session = localStorage.getItem('synergy_auth_session');
-    const storedEmail = localStorage.getItem('synergy_auth_user');
+useEffect(() => {
+  const session = localStorage.getItem('synergy_auth_session');
+  const storedEmail = localStorage.getItem('synergy_auth_user');
+
+  queueMicrotask(() => {
     if (session === 'true') {
       setIsAuthenticated(true);
-      setUserEmail(storedEmail || 'synergyglobal@yopmail.com');
+      setUserEmail(
+        storedEmail || 'synergyglobal@yopmail.com'
+      );
     }
+
     setCheckingAuth(false);
-  }, []);
+  });
+}, []);
 
   // Fetch submissions data when authenticated
   useEffect(() => {
