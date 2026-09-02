@@ -28,11 +28,11 @@ export default function Navbar({ userEmail, onLogout }) {
           {/* User Email & Logout */}
           {onLogout && (
             <div className="flex items-center space-x-3">
-              {userEmail && (
+              {/* {userEmail && (
                 <span className="hidden sm:inline-block text-xs text-slate-600 font-semibold max-w-[200px] truncate" title={userEmail}>
                   {userEmail}
                 </span>
-              )}
+              )} */}
               <button
                 onClick={onLogout}
                 className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
