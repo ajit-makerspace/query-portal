@@ -62,20 +62,26 @@ export default function LoginPage({ onLoginSuccess }) {
         />
       </div>
 
-      <div className="login-box p-4 border border-gray-200 rounded-[20px] shadow-sm bg-gray-100 relative z-10 w-full max-w-[430px]">
+      <div className="login-box p-6 border border-gray-200 rounded-[24px] shadow-md bg-white relative z-10 w-full max-w-[430px]">
         <div className="w-full max-w-[420px] z-10 animate-fadeIn flex flex-col">
+          
           {/* Header Branding */}
-          <div className="flex flex-col items-center mb-10 text-center">
-            <h2 className="font-black text-[34px] tracking-tight font-medium leading-none text-slate-700 mb-3">
+          <div className="flex flex-col items-center mb-8 text-center">
+            <img
+              src="/synergy-logo.png"
+              alt="Synergy Global Logo"
+              className="h-10 sm:h-12 w-auto object-contain mb-4"
+            />
+            <h2 className="font-black text-[28px] tracking-tight font-medium leading-none text-slate-800 mb-2">
               Query Portal Login
             </h2>
-            <p className="text-[13px] text-gray-500 font-medium max-w-[280px]">
-              Access centralized Qonevo & Makerspace site submissions
+            <p className="text-[13px] text-gray-500 font-medium max-w-[300px]">
+              Access centralized Qonevo, Makerspace & Labs site submissions
             </p>
           </div>
 
           {/* Login Form Body */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl flex items-center space-x-2">
                 <svg
@@ -97,24 +103,22 @@ export default function LoginPage({ onLoginSuccess }) {
 
             {/* Email Field */}
             <div className="relative">
-              <label className="absolute -top-[9px] left-[18px] bg-[#F7F7F7] px-1 text-[13px] font-medium text-gray-900 z-10">
+              <label className="block text-[12px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                 Email Address
               </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  required
-                  placeholder="synergyglobal@yopmail.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-[14px] bg-transparent border-[1.5px] border-gray-200 rounded-[12px] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-all"
-                />
-              </div>
+              <input
+                type="email"
+                required
+                placeholder="synergyglobal@yopmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-[12px] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-slate-800 focus:bg-white transition-all"
+              />
             </div>
 
             {/* Password Field */}
             <div className="relative">
-              <label className="absolute -top-[9px] left-[18px] bg-[#F7F7F7] px-1 text-[13px] font-medium text-gray-900 z-10">
+              <label className="block text-[12px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -124,7 +128,7 @@ export default function LoginPage({ onLoginSuccess }) {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-4 pr-12 py-[14px] bg-transparent border-[1.5px] border-gray-200 rounded-[12px] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-all"
+                  className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-gray-200 rounded-[12px] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-slate-800 focus:bg-white transition-all"
                 />
                 <button
                   type="button"
@@ -174,7 +178,7 @@ export default function LoginPage({ onLoginSuccess }) {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full mt-2 py-[15px] bg-slate-700 hover:bg-slate-800 cursor-pointer active:scale-[0.99] text-white font-semibold rounded-[12px] text-[15px] shadow-sm transition-all flex items-center justify-center space-x-2 disabled:opacity-70 disabled:active:scale-100"
+              className="w-full mt-2 py-3.5 bg-slate-900 hover:bg-slate-800 cursor-pointer active:scale-[0.99] text-white font-bold rounded-[12px] text-[15px] shadow-sm transition-all flex items-center justify-center space-x-2 disabled:opacity-70 disabled:active:scale-100"
             >
               {submitting ? (
                 <>
@@ -188,7 +192,7 @@ export default function LoginPage({ onLoginSuccess }) {
           </form>
 
           {/* Footer */}
-          <div className="mt-14 text-center text-[12.5px] text-gray-400 font-medium">
+          <div className="mt-10 text-center text-[12px] text-gray-400 font-medium">
             Synergy Global Portal &copy; 2026
           </div>
         </div>
