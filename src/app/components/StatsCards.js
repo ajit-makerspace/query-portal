@@ -1,9 +1,83 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+
+// Custom hook for smooth animated number counting (Ease-Out Quad)
+function useAnimatedCount(targetValue, duration = 2500) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp = null;
+    const endVal = Number(targetValue) || 0;
+
+    if (endVal === 0) {
+      setCount(0);
+      return;
+    }
+
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeOutQuad = progress * (2 - progress);
+      const currentCount = Math.floor(easeOutQuad * endVal);
+
+      setCount(currentCount);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setCount(endVal);
+      }
+    };
+
+    const animId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(animId);
+  }, [targetValue, duration]);
+
+  return count;
+}
+
+// Custom hook for smooth candle growth animation (Ease-Out Quad 0 to 1)
+function useChartProgress(triggerData, duration = 2500) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp = null;
+    setProgress(0);
+
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const elapsed = timestamp - startTimestamp;
+      const rawProgress = Math.min(elapsed / duration, 1);
+      const easeOut = rawProgress * (2 - rawProgress);
+
+      setProgress(easeOut);
+
+      if (rawProgress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setProgress(1);
+      }
+    };
+
+    const animId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(animId);
+  }, [triggerData, duration]);
+
+  return progress;
+}
 
 export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspaceCount = 0, labsCount = 0, data = [] }) {
   const [hoveredBar, setHoveredBar] = useState(null);
+
+  // Animated counters for KPI cards
+  const animatedTotal = useAnimatedCount(totalCount, 2500);
+  const animatedQonevo = useAnimatedCount(qonevoCount, 2500);
+  const animatedMakerspace = useAnimatedCount(makerspaceCount, 2500);
+  const animatedLabs = useAnimatedCount(labsCount, 2500);
+
+  // Animated progress (0 -> 1) for growing chart candles
+  const chartProgress = useChartProgress(data, 2500);
 
   // Compute month-wise breakdown dynamically from live dataset
   const monthlyStackedData = useMemo(() => {
@@ -96,8 +170,8 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
               Total Submissions
             </p>
             <div className="flex items-baseline space-x-2.5 mt-1">
-              <span className="text-3xl font-black text-slate-900 tracking-tight">
-                {totalCount}
+              <span className="text-3xl font-black text-slate-900 tracking-tight transition-all">
+                {animatedTotal}
               </span>
               <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                 Live Database Stream
@@ -140,12 +214,12 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
               </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900">{qonevoCount}</p>
+              <p className="text-2xl font-black text-slate-900 transition-all">{animatedQonevo}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
-                  className="bg-indigo-600 h-full rounded-full transition-all"
+                  className="bg-indigo-600 h-full rounded-full transition-all duration-1000 ease-out"
                   style={{
-                    width: `${totalCount > 0 ? (qonevoCount / totalCount) * 100 : 0}%`,
+                    width: `${totalCount > 0 ? (animatedQonevo / totalCount) * 100 : 0}%`,
                   }}
                 ></div>
               </div>
@@ -176,12 +250,12 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
               </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900">{makerspaceCount}</p>
+              <p className="text-2xl font-black text-slate-900 transition-all">{animatedMakerspace}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
-                  className="bg-emerald-600 h-full rounded-full transition-all"
+                  className="bg-emerald-600 h-full rounded-full transition-all duration-1000 ease-out"
                   style={{
-                    width: `${totalCount > 0 ? (makerspaceCount / totalCount) * 100 : 0}%`,
+                    width: `${totalCount > 0 ? (animatedMakerspace / totalCount) * 100 : 0}%`,
                   }}
                 ></div>
               </div>
@@ -212,12 +286,12 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
               </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900">{labsCount}</p>
+              <p className="text-2xl font-black text-slate-900 transition-all">{animatedLabs}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
-                  className="bg-purple-600 h-full rounded-full transition-all"
+                  className="bg-purple-600 h-full rounded-full transition-all duration-1000 ease-out"
                   style={{
-                    width: `${totalCount > 0 ? (labsCount / totalCount) * 100 : 0}%`,
+                    width: `${totalCount > 0 ? (animatedLabs / totalCount) * 100 : 0}%`,
                   }}
                 ></div>
               </div>
@@ -272,6 +346,39 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
         <div className="relative my-2">
           <svg className="w-full h-[200px]" viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
             
+            {/* SVG ClipPaths for Animated Growing Candles (Top-Only Rounding, Flat Bottom) */}
+            <defs>
+              {monthlyStackedData.map((item, index) => {
+                const colWidth = 52;
+                const usableWidth = svgWidth - leftMargin - rightMargin;
+                const spacing = usableWidth / monthlyStackedData.length;
+                const centerX = leftMargin + spacing * index + spacing / 2;
+                const xPos = centerX - colWidth / 2;
+                
+                const fullTotalH = calcH(item.total);
+                const animatedTotalH = fullTotalH * chartProgress;
+                const r = Math.min(6, animatedTotalH / 2);
+
+                return (
+                  <clipPath id={`candle-clip-${index}`} key={`clip-${index}`}>
+                    {animatedTotalH > 0 && (
+                      <path
+                        d={`
+                          M ${xPos},${baselineY}
+                          V ${baselineY - animatedTotalH + r}
+                          a ${r},${r} 0 0 1 ${r},-${r}
+                          H ${xPos + colWidth - r}
+                          a ${r},${r} 0 0 1 ${r},${r}
+                          V ${baselineY}
+                          Z
+                        `}
+                      />
+                    )}
+                  </clipPath>
+                );
+              })}
+            </defs>
+
             {/* Grid Lines & Y-Axis Scale Labels */}
             {yTicks.map((val, idx) => {
               const yPos = baselineY - calcH(val);
@@ -306,15 +413,22 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
               const centerX = leftMargin + spacing * index + spacing / 2;
               const xPos = centerX - colWidth / 2;
 
-              const qonevoH = calcH(item.qonevo);
-              const makerspaceH = calcH(item.makerspace);
-              const labsH = calcH(item.labs);
-              const totalH = calcH(item.total);
+              // Animated segment heights & positions based on chartProgress
+              const fullQonevoH = calcH(item.qonevo);
+              const fullMakerspaceH = calcH(item.makerspace);
+              const fullLabsH = calcH(item.labs);
+              const fullTotalH = calcH(item.total);
 
-              const qonevoY = baselineY - qonevoH;
-              const makerspaceY = qonevoY - makerspaceH;
-              const labsY = makerspaceY - labsH;
+              const animatedQonevoH = fullQonevoH * chartProgress;
+              const animatedMakerspaceH = fullMakerspaceH * chartProgress;
+              const animatedLabsH = fullLabsH * chartProgress;
+              const animatedTotalH = fullTotalH * chartProgress;
 
+              const qonevoY = baselineY - animatedQonevoH;
+              const makerspaceY = qonevoY - animatedMakerspaceH;
+              const labsY = makerspaceY - animatedLabsH;
+
+              const currentPillCount = Math.floor(item.total * chartProgress);
               const isHovered = hoveredBar?.month === item.month;
 
               return (
@@ -333,8 +447,11 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
                     fill="transparent"
                   />
 
-                  {/* Stacked Column Group */}
-                  <g className="transition-opacity duration-200 group-hover:opacity-90">
+                  {/* Growing Stacked Candle Column Group */}
+                  <g
+                    clipPath={animatedTotalH > 0 ? `url(#candle-clip-${index})` : undefined}
+                    className="transition-opacity duration-200 group-hover:opacity-90"
+                  >
                     
                     {/* Bottom Stack: Qonevo */}
                     {item.qonevo > 0 && (
@@ -342,9 +459,8 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
                         x={xPos}
                         y={qonevoY}
                         width={colWidth}
-                        height={qonevoH}
+                        height={animatedQonevoH + 0.5}
                         fill="#4F46E5"
-                        rx={item.makerspace === 0 && item.labs === 0 ? "6" : "0"}
                       />
                     )}
 
@@ -354,9 +470,8 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
                         x={xPos}
                         y={makerspaceY}
                         width={colWidth}
-                        height={makerspaceH}
+                        height={animatedMakerspaceH + 0.5}
                         fill="#10B981"
-                        rx={item.labs === 0 ? "6" : "0"}
                       />
                     )}
 
@@ -366,16 +481,15 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
                         x={xPos}
                         y={labsY}
                         width={colWidth}
-                        height={labsH}
+                        height={animatedLabsH + 0.5}
                         fill="#9333EA"
-                        rx="6"
                       />
                     )}
                   </g>
 
-                  {/* Count Pill Badge Floating Above Column */}
-                  {item.total > 0 && (
-                    <g transform={`translate(${centerX}, ${baselineY - totalH - 12})`}>
+                  {/* Count Pill Badge Floating & Rising Above Growing Candle */}
+                  {item.total > 0 && animatedTotalH > 3 && (
+                    <g transform={`translate(${centerX}, ${baselineY - animatedTotalH - 12})`}>
                       <rect
                         x="-16"
                         y="-10"
@@ -391,7 +505,7 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
                         textAnchor="middle"
                         className="text-[10px] font-extrabold fill-white font-sans"
                       >
-                        {item.total}
+                        {currentPillCount}
                       </text>
                     </g>
                   )}
