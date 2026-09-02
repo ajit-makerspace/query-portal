@@ -67,8 +67,17 @@ function useChartProgress(triggerData, duration = 2500) {
   return progress;
 }
 
-export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspaceCount = 0, labsCount = 0, data = [] }) {
+export default function StatsCards({
+  totalCount = 0,
+  qonevoCount = 0,
+  makerspaceCount = 0,
+  labsCount = 0,
+  data = []
+}) {
   const [hoveredBar, setHoveredBar] = useState(null);
+  
+  // Chart-specific active filter tab (Independent of table down side data)
+  const [chartTab, setChartTab] = useState("all");
 
   // Animated counters for KPI cards
   const animatedTotal = useAnimatedCount(totalCount, 2500);
@@ -77,14 +86,41 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
   const animatedLabs = useAnimatedCount(labsCount, 2500);
 
   // Animated progress (0 -> 1) for growing chart candles
-  const chartProgress = useChartProgress(data, 2500);
+  const chartProgress = useChartProgress(`${data.length}-${chartTab}`, 2500);
 
-  // Compute month-wise breakdown dynamically from live dataset
+  // Synergy Dark Navy Logo Colors styling helper for selected cards
+  // Outline: #1F314C (Synergy Dark Navy) | Shadow: rgba(31, 49, 76, 0.35)
+  const getCardStyle = (tabKey, paddingClass = "p-4") => {
+    const isSelected = chartTab === tabKey;
+    if (isSelected) {
+      return {
+        style: {
+          borderColor: "#1F314C",
+          boxShadow: "0 8px 25px -4px rgba(31, 49, 76, 0.35), 0 0 0 2px #1F314C",
+          backgroundColor: "#F8FAFC"
+        },
+        className: `${paddingClass} rounded-2xl cursor-pointer transition-all duration-200`
+      };
+    }
+    return {
+      style: {},
+      className: `${paddingClass} rounded-2xl border border-slate-200 bg-white shadow-xs hover:border-slate-300 cursor-pointer transition-all duration-200`
+    };
+  };
+
+  // Compute month-wise breakdown dynamically filtered strictly for the chart
   const monthlyStackedData = useMemo(() => {
     const monthMap = new Map();
 
     if (data && data.length > 0) {
       data.forEach(item => {
+        const src = item.source || (item.company_name ? 'Qonevo' : item.designation ? 'Labs Site' : 'Makerspace Site');
+        
+        // Filter dataset based on internal chartTab selection
+        if (chartTab === 'qonevo' && src !== 'Qonevo') return;
+        if (chartTab === 'makerspace' && src !== 'Makerspace Site') return;
+        if (chartTab === 'labs' && src !== 'Labs Site') return;
+
         const date = item.created_at ? new Date(item.created_at) : null;
         if (!date || isNaN(date.getTime())) return;
 
@@ -104,7 +140,6 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
         }
 
         const m = monthMap.get(key);
-        const src = item.source || (item.company_name ? 'Qonevo' : item.designation ? 'Labs Site' : 'Makerspace Site');
         if (src === 'Qonevo') m.qonevo += 1;
         else if (src === 'Makerspace Site') m.makerspace += 1;
         else if (src === 'Labs Site') m.labs += 1;
@@ -134,7 +169,7 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
     }
 
     return sortedMonths.slice(-4);
-  }, [data]);
+  }, [data, chartTab]);
 
   // Clean Y-axis scale rounded to nearest 10 with 35% headroom
   const rawMax = Math.max(...monthlyStackedData.map(m => m.total), 10);
@@ -157,14 +192,24 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
 
   const calcH = (val) => (val / maxVal) * plotHeight;
 
+  const totalCard = getCardStyle('all', 'p-5');
+  const qonevoCard = getCardStyle('qonevo', 'p-4');
+  const makerspaceCard = getCardStyle('makerspace', 'p-4');
+  const labsCard = getCardStyle('labs', 'p-4');
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
       
       {/* LEFT SECTION: Total Submissions Header & 3 Portal Share Cards */}
       <div className="lg:col-span-5 flex flex-col gap-4">
         
-        {/* Total Submissions Main Card */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        {/* Total Submissions Main Card (Icon Removed) */}
+        <div
+          onClick={() => setChartTab('all')}
+          style={totalCard.style}
+          className={`${totalCard.className} flex items-center justify-between`}
+          title="Click to view total submissions chart"
+        >
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Total Submissions
@@ -181,40 +226,25 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
               Aggregated live across Qonevo, Makerspace & Labs Site databases
             </p>
           </div>
-          <div className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 shadow-2xs">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-              />
-            </svg>
-          </div>
         </div>
 
-        {/* Sub-sections: Qonevo, Makerspace & Labs Cards */}
+        {/* Sub-sections: Qonevo, Makerspace & Labs Cards (Icons Removed, Centered) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
           
-          {/* Qonevo Sub-section */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-indigo-200 transition-colors">
-            <div className="flex items-center justify-between mb-2">
+          {/* Qonevo Sub-section (Centered) */}
+          <div
+            onClick={() => setChartTab('qonevo')}
+            style={qonevoCard.style}
+            className={`${qonevoCard.className} flex flex-col justify-between text-center`}
+            title="Click to view Qonevo monthly chart"
+          >
+            <div className="text-center mb-1">
               <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">
                 Qonevo
               </span>
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
-              </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900 transition-all">{animatedQonevo}</p>
+              <p className="text-3xl font-black text-slate-900 text-center transition-all">{animatedQonevo}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
                   className="bg-indigo-600 h-full rounded-full transition-all duration-1000 ease-out"
@@ -232,25 +262,20 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
             </div>
           </div>
 
-          {/* Makerspace Sub-section */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-emerald-200 transition-colors">
-            <div className="flex items-center justify-between mb-2">
+          {/* Makerspace Sub-section (Centered) */}
+          <div
+            onClick={() => setChartTab('makerspace')}
+            style={makerspaceCard.style}
+            className={`${makerspaceCard.className} flex flex-col justify-between text-center`}
+            title="Click to view Makerspace monthly chart"
+          >
+            <div className="text-center mb-1">
               <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">
                 Makerspace
               </span>
-              <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-              </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900 transition-all">{animatedMakerspace}</p>
+              <p className="text-3xl font-black text-slate-900 text-center transition-all">{animatedMakerspace}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
                   className="bg-emerald-600 h-full rounded-full transition-all duration-1000 ease-out"
@@ -268,25 +293,20 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
             </div>
           </div>
 
-          {/* Labs Sub-section */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-purple-200 transition-colors">
-            <div className="flex items-center justify-between mb-2">
+          {/* Labs Sub-section (Centered) */}
+          <div
+            onClick={() => setChartTab('labs')}
+            style={labsCard.style}
+            className={`${labsCard.className} flex flex-col justify-between text-center`}
+            title="Click to view Labs Site monthly chart"
+          >
+            <div className="text-center mb-1">
               <span className="text-[11px] font-bold text-purple-600 uppercase tracking-wider">
                 Labs Site
               </span>
-              <div className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a1.996 1.996 0 01-1.022-.547M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900 transition-all">{animatedLabs}</p>
+              <p className="text-3xl font-black text-slate-900 text-center transition-all">{animatedLabs}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
                   className="bg-purple-600 h-full rounded-full transition-all duration-1000 ease-out"
@@ -308,37 +328,59 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
 
       </div>
 
-      {/* RIGHT SECTION: 100% Perfectly Aligned Executive-Grade Stacked Chart */}
+      {/* RIGHT SECTION: Dynamic 100% Perfectly Aligned Stacked Chart */}
       <div className="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
         
         {/* Header & Legend */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-100 gap-2">
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-              <span>Monthly Submissions Breakdown</span>
+              <span>
+                {chartTab === 'all' && 'Monthly Submissions Breakdown'}
+                {chartTab === 'qonevo' && 'Qonevo Monthly Breakdown'}
+                {chartTab === 'makerspace' && 'Makerspace Monthly Breakdown'}
+                {chartTab === 'labs' && 'Labs Site Monthly Breakdown'}
+              </span>
               <span className="text-[10px] uppercase font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
                 Live Stream
               </span>
+              {chartTab !== 'all' && (
+                <button
+                  onClick={() => setChartTab('all')}
+                  className="text-[10px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2 py-0.5 rounded-md transition cursor-pointer"
+                  title="Reset chart to All Data"
+                >
+                  Reset Filter ✕
+                </button>
+              )}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Live submission growth categorized per database source
+              {chartTab === 'all'
+                ? 'Live submission growth categorized per database source'
+                : `Showing monthly submissions specifically for ${chartTab.toUpperCase()}`}
             </p>
           </div>
 
           {/* Legend */}
           <div className="flex items-center space-x-4 text-xs font-semibold">
-            <div className="flex items-center space-x-1.5">
-              <span className="w-3 h-3 rounded-xs bg-indigo-600 inline-block shadow-2xs"></span>
-              <span className="text-slate-700 font-medium">Qonevo</span>
-            </div>
-            <div className="flex items-center space-x-1.5">
-              <span className="w-3 h-3 rounded-xs bg-emerald-500 inline-block shadow-2xs"></span>
-              <span className="text-slate-700 font-medium">Makerspace</span>
-            </div>
-            <div className="flex items-center space-x-1.5">
-              <span className="w-3 h-3 rounded-xs bg-purple-600 inline-block shadow-2xs"></span>
-              <span className="text-slate-700 font-medium">Labs</span>
-            </div>
+            {(chartTab === 'all' || chartTab === 'qonevo') && (
+              <div className="flex items-center space-x-1.5">
+                <span className="w-3 h-3 rounded-xs bg-indigo-600 inline-block shadow-2xs"></span>
+                <span className="text-slate-700 font-medium">Qonevo</span>
+              </div>
+            )}
+            {(chartTab === 'all' || chartTab === 'makerspace') && (
+              <div className="flex items-center space-x-1.5">
+                <span className="w-3 h-3 rounded-xs bg-emerald-500 inline-block shadow-2xs"></span>
+                <span className="text-slate-700 font-medium">Makerspace</span>
+              </div>
+            )}
+            {(chartTab === 'all' || chartTab === 'labs') && (
+              <div className="flex items-center space-x-1.5">
+                <span className="w-3 h-3 rounded-xs bg-purple-600 inline-block shadow-2xs"></span>
+                <span className="text-slate-700 font-medium">Labs</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -552,21 +594,31 @@ export default function StatsCards({ totalCount = 0, qonevoCount = 0, makerspace
                 Month Total: <strong className="text-slate-900">{hoveredBar.total}</strong>
               </span>
               <span className="text-slate-300">|</span>
-              <span className="text-indigo-600 font-bold">
-                Qonevo: {hoveredBar.qonevo}
-              </span>
-              <span className="text-emerald-600 font-bold">
-                Makerspace: {hoveredBar.makerspace}
-              </span>
-              <span className="text-purple-600 font-bold">
-                Labs: {hoveredBar.labs}
-              </span>
+              {(chartTab === 'all' || chartTab === 'qonevo') && (
+                <span className="text-indigo-600 font-bold">
+                  Qonevo: {hoveredBar.qonevo}
+                </span>
+              )}
+              {(chartTab === 'all' || chartTab === 'makerspace') && (
+                <span className="text-emerald-600 font-bold">
+                  Makerspace: {hoveredBar.makerspace}
+                </span>
+              )}
+              {(chartTab === 'all' || chartTab === 'labs') && (
+                <span className="text-purple-600 font-bold">
+                  Labs: {hoveredBar.labs}
+                </span>
+              )}
             </div>
           ) : (
             <>
               <div className="flex items-center space-x-1.5">
                 <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-                <span className="text-slate-500 font-medium">Hover columns to inspect source breakdown</span>
+                <span className="text-slate-500 font-medium">
+                  {chartTab === 'all'
+                    ? 'Click any portal card to isolate monthly chart breakdown'
+                    : `Filtered chart view for ${chartTab.toUpperCase()} (Click card or Reset to view all)`}
+                </span>
               </div>
               <span className="text-slate-400 font-medium">Strict Live Stream</span>
             </>
