@@ -14,6 +14,15 @@ function cleanEnv(val) {
   return str;
 }
 
+// Timeout wrapper to prevent DB queries from hanging server responses
+function withTimeout(promise, ms = 4000) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Database query timed out')), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
+
 function getQonevoPool() {
   if (typeof window !== 'undefined') return null;
 
@@ -30,13 +39,13 @@ function getQonevoPool() {
         user,
         password,
         database,
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 3500,
         ssl: cleanEnv(process.env.QONEVO_DB_SSLMODE) === 'require' ? { rejectUnauthorized: false } : false
       });
     } else if (process.env.QONEVO_DATABASE_URL) {
       qonevoPool = new Pool({
         connectionString: cleanEnv(process.env.QONEVO_DATABASE_URL),
-        connectionTimeoutMillis: 5000
+        connectionTimeoutMillis: 3500
       });
     }
   }
@@ -60,7 +69,7 @@ function getMakerspacePool() {
         user,
         password,
         database,
-        connectTimeout: 5000,
+        connectTimeout: 3500,
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0
@@ -89,12 +98,12 @@ function getLabsPool() {
         user,
         password,
         database,
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 3500,
       });
     } else if (process.env.LABS_DATABASE_URL) {
       labsPool = new Pool({
         connectionString: cleanEnv(process.env.LABS_DATABASE_URL),
-        connectionTimeoutMillis: 5000
+        connectionTimeoutMillis: 3500
       });
     }
   }
@@ -103,7 +112,7 @@ function getLabsPool() {
 }
 
 /**
- * Fetch live Qonevo contact form submissions from PostgreSQL DB. Returns [] if error/empty.
+ * Fetch live Qonevo contact form submissions from PostgreSQL DB.
  */
 export async function getQonevoContacts() {
   const pool = getQonevoPool();
@@ -113,7 +122,7 @@ export async function getQonevoContacts() {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM contacts ORDER BY id DESC LIMIT 200');
+    const result = await withTimeout(pool.query('SELECT * FROM contacts ORDER BY id DESC LIMIT 200'), 3500);
     if (result && result.rows && result.rows.length > 0) {
       return result.rows.map(row => ({
         id: row.id,
@@ -135,7 +144,7 @@ export async function getQonevoContacts() {
 }
 
 /**
- * Fetch live Makerspace site enquiries from MariaDB DB 'makerspace' table 'enquiries'.
+ * Fetch live Makerspace site enquiries from MariaDB DB.
  */
 export async function getMakerspaceEnquiries() {
   const pool = getMakerspacePool();
@@ -145,7 +154,7 @@ export async function getMakerspaceEnquiries() {
   }
 
   try {
-    const [rows] = await pool.query("SELECT * FROM enquiries ORDER BY id DESC LIMIT 200");
+    const [rows] = await withTimeout(pool.query("SELECT * FROM enquiries ORDER BY id DESC LIMIT 200"), 3500);
     if (rows && rows.length > 0) {
       return rows.map(row => ({
         id: row.id,
@@ -174,7 +183,7 @@ export async function getMakerspaceEnquiries() {
 }
 
 /**
- * Fetch live Labs site submissions from PostgreSQL database 'advertisment' table 'enquiries'.
+ * Fetch live Labs site submissions from PostgreSQL database 'advertisment'.
  */
 export async function getLabsSubmissions() {
   const pgPool = getLabsPool();
@@ -184,7 +193,7 @@ export async function getLabsSubmissions() {
   }
 
   try {
-    const result = await pgPool.query('SELECT * FROM enquiries ORDER BY created_at DESC LIMIT 200');
+    const result = await withTimeout(pgPool.query('SELECT * FROM enquiries ORDER BY created_at DESC LIMIT 200'), 3500);
     if (result && result.rows && result.rows.length > 0) {
       return result.rows.map(row => ({
         id: row.id,
