@@ -36,5 +36,8 @@ jobs:
             # 6. Build the Next.js production bundle
             npm run build
             
-            # 7. Restart the PM2 background process and load the new .env
-            pm2 restart nextjs-app --update-env
+            # 7. Restart PM2, or start it for the first time if it doesn't exist
+            pm2 restart nextjs-app --update-env || pm2 start npm --name "nextjs-app" -- run start
+            
+            # 8. Save the PM2 list so it automatically reboots if the server restarts
+            pm2 save
