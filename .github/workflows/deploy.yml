@@ -1,0 +1,40 @@
+name: Production Native Deployment
+
+# Triggers the deployment automatically when you push to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into MilesWeb Server and Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            # 1. Navigate to the manager's specified directory
+            # (Make sure to replace 'your-project-folder' with the actual folder name)
+            cd /var/www/query
+            
+            # 2. Re-create the .env file dynamically from GitHub Secrets
+            echo "${{ secrets.PROD_ENV }}" > .env
+            
+            # 3. Lock down the .env file so only root can read it
+            chmod 600 .env
+            
+            # 4. Pull the latest code from GitHub
+            git pull origin main
+            
+            # 5. Install Node dependencies directly on the server
+            npm install
+            
+            # 6. Build the Next.js production bundle
+            npm run build
+            
+            # 7. Restart the PM2 background process and load the new .env
+            pm2 restart nextjs-app --update-env
