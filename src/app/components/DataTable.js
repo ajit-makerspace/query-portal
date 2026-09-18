@@ -22,8 +22,7 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
   }, []);
 
   // Helper: merge the source-specific "raw" fields onto the normalized item
-  // so the detail modal always has both shapes available, regardless of
-  // which tab (All Data vs a specific source) the row was clicked from.
+  // so the detail modal always has both shapes available.
   const withRaw = (item) => ({ ...item, ...(item.raw || {}) });
 
   // Filter data based on search query AND date range
@@ -85,7 +84,7 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
   // Number of columns for the current tab (used for the empty-state colSpan)
   const columnCount = activeTab === 'all' ? 6 : 8;
 
-  // Helper: pull the common fields out of any record shape (qonevo / makerspace / labs)
+  // Helper: pull the common fields out of any record shape
   const getCommonFields = (item) => ({
     fullName: item.full_name || `${item.first_name || ''} ${item.last_name || ''}`.trim(),
     email: item.email || '',
@@ -101,8 +100,8 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
     let headers = [];
     let rows = [];
 
-    if (activeTab === 'qonevo') {
-      headers = ['ID', 'Full Name', 'Email', 'Phone Number', 'Company Name', 'Website URL', 'Help Message', 'Submitted Date'];
+    if (activeTab === 'qonevo' || activeTab === 'panel') {
+      headers = ['ID', 'Full Name', 'Email', 'Phone Number', 'Company Name', 'Website URL', 'Message', 'Submitted Date'];
       rows = filteredData.map(item => [
         item.id,
         `"${item.full_name || ''}"`,
@@ -268,12 +267,13 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                   onClick={() => setIsSourceOpen((prev) => !prev)}
                   className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-xs text-slate-800 rounded-md px-2.5 py-1 transition-colors cursor-pointer"
                 >
-                 <span className="block max-w-[78px] truncate">
-  {activeTab === "all" && "All Data"}
-  {activeTab === "qonevo" && "Qonevo Site"}
-  {activeTab === "makerspace" && "Makerspace Site"}
-  {activeTab === "labs" && "Labs Site"}
-</span>
+                  <span className="block max-w-[78px] truncate">
+                    {activeTab === "all" && "All Data"}
+                    {activeTab === "qonevo" && "Qonevo Site"}
+                    {activeTab === "makerspace" && "Makerspace Site"}
+                    {activeTab === "labs" && "Labs Site"}
+                    {activeTab === "panel" && "Panel Site"}
+                  </span>
                   <svg
                     className={`w-3.5 h-3.5 text-slate-700 transition-transform duration-200 ${isSourceOpen ? "rotate-180" : ""}`}
                     fill="none"
@@ -293,6 +293,7 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                     { value: "qonevo", label: "Qonevo Site" },
                     { value: "makerspace", label: "Makerspace Site" },
                     { value: "labs", label: "Labs Site" },
+                    { value: "panel", label: "Panel Site" },
                   ].map((item) => (
                     <button
                       key={item.value}
@@ -325,31 +326,33 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
           {/* Export CSV Button */}
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-2xs transition flex items-center space-x-1.5 cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer"
+            title="Export current view to CSV file"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span>Export CSV</span>
           </button>
+
         </div>
 
       </div>
 
-      {/* Main Table */}
+      {/* Main Data Table Area */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm text-slate-700">
 
           {/* Dynamic Table Column Headers */}
           <thead className="bg-slate-100/80 text-slate-700 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
-            {activeTab === 'qonevo' ? (
+            {activeTab === 'qonevo' || activeTab === 'panel' ? (
               <tr>
                 <th className="py-3.5 px-4">Full Name</th>
                 <th className="py-3.5 px-4">Email</th>
                 <th className="py-3.5 px-4">Phone Number</th>
                 <th className="py-3.5 px-4">Company Name</th>
                 <th className="py-3.5 px-4">Website URL</th>
-                <th className="py-3.5 px-4">How Can We Help?</th>
+                <th className="py-3.5 px-4">Message / Requirements</th>
                 <th className="py-3.5 px-4">Submitted Date</th>
                 <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
@@ -376,7 +379,7 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                 <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             ) : (
-              // "All Data" view: only the 5 common fields + action
+              // "All Data" view: common fields + action
               <tr>
                 <th className="py-3.5 px-4">Full Name</th>
                 <th className="py-3.5 px-4">Email / Phone</th>
@@ -409,8 +412,8 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                     onClick={() => onSelectRow(withRaw(item))}
                   >
 
-                    {/* View: Qonevo Specific */}
-                    {activeTab === 'qonevo' && (
+                    {/* View: Qonevo & Panel Specific */}
+                    {(activeTab === 'qonevo' || activeTab === 'panel') && (
                       <>
                         <td className="py-3.5 px-4 font-semibold text-slate-900">{item.full_name}</td>
                         <td className="py-3.5 px-4 text-blue-600 font-medium">{item.email}</td>
@@ -443,13 +446,13 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                           <div className="text-xs text-slate-500">{item.phone}</div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="font-medium text-slate-800">{item.institution}</div>
-                          <div className="text-xs text-slate-500">{item.role}</div>
+                          <div className="font-medium text-slate-800">{item.institution || 'N/A'}</div>
+                          <div className="text-xs text-slate-500">{item.role || item.organization_type || ''}</div>
                         </td>
                         <td className="py-3.5 px-4 text-slate-700">{item.location || 'N/A'}</td>
                         <td className="py-3.5 px-4">
-                          <span className="inline-block bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2 py-0.5 rounded-md font-medium">
-                            {item.solution_interest || 'General'}
+                          <span className="inline-block bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-semibold border border-emerald-200">
+                            {item.solution_interest || 'N/A'}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-slate-600">{item.implementation_time || 'N/A'}</td>
@@ -470,11 +473,11 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                         <td className="py-3.5 px-4 font-medium text-slate-800">{item.institution || 'N/A'}</td>
                         <td className="py-3.5 px-4 text-slate-700">{item.city || 'N/A'}</td>
                         <td className="py-3.5 px-4">
-                          <span className="inline-block bg-purple-50 text-purple-700 border border-purple-200 text-xs px-2 py-0.5 rounded-md font-medium">
+                          <span className="inline-block bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md text-xs font-semibold border border-purple-200">
                             {item.designation || 'N/A'}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 text-slate-600 max-w-[250px] truncate" title={item.message}>
+                        <td className="py-3.5 px-4 text-slate-600 max-w-[200px] truncate" title={item.message}>
                           {item.message || 'N/A'}
                         </td>
                         <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
@@ -483,35 +486,38 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
                       </>
                     )}
 
-                    {/* View: Combined "All Data" — only the 5 common fields */}
-                    {activeTab === 'all' && (() => {
-                      const f = getCommonFields(item);
-                      return (
-                        <>
-                          <td className="py-3.5 px-4 font-semibold text-slate-900">{f.fullName || 'N/A'}</td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-medium text-blue-600">{f.email || 'N/A'}</div>
-                            <div className="text-xs text-slate-500">{f.phone}</div>
-                          </td>
-                          <td className="py-3.5 px-4 font-medium text-slate-800">{f.company || 'N/A'}</td>
-                          <td className="py-3.5 px-4 text-slate-600 max-w-[260px] truncate" title={f.message}>
-                            {f.message || 'N/A'}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                            {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
-                          </td>
-                        </>
-                      );
-                    })()}
+                    {/* View: All Data (Unified View) */}
+                    {activeTab === 'all' && (
+                      <>
+                        <td className="py-3.5 px-4 font-semibold text-slate-900">
+                          {item.full_name || `${item.first_name || ''} ${item.last_name || ''}`}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="font-medium text-blue-600">{item.email}</div>
+                          <div className="text-xs text-slate-500">{item.phone_number || item.phone}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="font-medium text-slate-800">
+                            {item.company_name || item.institution || item.company_or_institution || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-600 max-w-[220px] truncate" title={item.help_message || item.comment || item.message}>
+                          {item.help_message || item.comment || item.message || 'N/A'}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                          {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                      </>
+                    )}
 
-                    {/* Action button column */}
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    {/* Action Column (View Details Drawer) */}
+                    <td className="py-3.5 px-4 text-right">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectRow(withRaw(item));
                         }}
-                        className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 transition"
+                        className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-md transition border border-slate-300"
                       >
                         View
                       </button>
@@ -528,25 +534,26 @@ export default function DataTable({ data, activeTab, setActiveTab, onSelectRow }
       {/* Pagination Footer */}
       {totalPages > 1 && (
         <div className="p-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          >
-            Previous
-          </button>
-
-          <span className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500">
             Page <strong className="text-slate-800">{currentPage}</strong> of <strong className="text-slate-800">{totalPages}</strong>
-          </span>
+          </p>
 
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          >
-            Next
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded-md text-xs font-semibold disabled:opacity-50 hover:bg-slate-100 transition"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded-md text-xs font-semibold disabled:opacity-50 hover:bg-slate-100 transition"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 

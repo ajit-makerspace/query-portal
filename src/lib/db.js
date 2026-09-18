@@ -4,6 +4,7 @@ import mysql from 'mysql2/promise';
 let qonevoPool = null;
 let makerspacePool = null;
 let labsPool = null;
+let panelPool = null;
 
 function cleanEnv(val) {
   if (!val) return '';
@@ -111,8 +112,37 @@ function getLabsPool() {
   return labsPool;
 }
 
+function getPanelPool() {
+  if (typeof window !== 'undefined') return null;
+
+  if (!panelPool) {
+    const host = cleanEnv(process.env.PANEL_DB_HOST);
+    const user = cleanEnv(process.env.PANEL_DB_USER);
+    const password = cleanEnv(process.env.PANEL_DB_PASSWORD);
+    const database = cleanEnv(process.env.PANEL_DB_NAME);
+
+    if (host && user && password && database) {
+      panelPool = new Pool({
+        host,
+        port: process.env.PANEL_DB_PORT ? parseInt(cleanEnv(process.env.PANEL_DB_PORT), 10) : 5432,
+        user,
+        password,
+        database,
+        connectionTimeoutMillis: 3500,
+      });
+    } else if (process.env.PANEL_DATABASE_URL) {
+      panelPool = new Pool({
+        connectionString: cleanEnv(process.env.PANEL_DATABASE_URL),
+        connectionTimeoutMillis: 3500
+      });
+    }
+  }
+
+  return panelPool;
+}
+
 /**
- * Fetch live Qonevo contact form submissions from PostgreSQL DB.
+ * Fetch live Qonevo contact form submissions from PostgreSQL DB (qonevo-backend).
  */
 export async function getQonevoContacts() {
   const pool = getQonevoPool();
@@ -144,7 +174,7 @@ export async function getQonevoContacts() {
 }
 
 /**
- * Fetch live Makerspace site enquiries from MariaDB DB.
+ * Fetch live Makerspace site enquiries from MariaDB DB (makerspace).
  */
 export async function getMakerspaceEnquiries() {
   const pool = getMakerspacePool();
@@ -183,7 +213,7 @@ export async function getMakerspaceEnquiries() {
 }
 
 /**
- * Fetch live Labs site submissions from PostgreSQL database 'advertisment'.
+ * Fetch live Labs site submissions from PostgreSQL database (advertisment).
  */
 export async function getLabsSubmissions() {
   const pgPool = getLabsPool();
@@ -218,13 +248,47 @@ export async function getLabsSubmissions() {
 }
 
 /**
- * Fetch unified list of submissions from all live database sources.
+ * Fetch live Panel site submissions from PostgreSQL database (adsqonevo_db).
+ */
+export async function getPanelLeads() {
+  const pgPool = getPanelPool();
+
+  if (!pgPool) {
+    return [];
+  }
+
+  try {
+    const result = await withTimeout(pgPool.query('SELECT * FROM leads ORDER BY created_at DESC LIMIT 200'), 3500);
+    if (result && result.rows && result.rows.length > 0) {
+      return result.rows.map(row => ({
+        id: row.id,
+        full_name: row.full_name || '',
+        email: row.email || '',
+        phone_number: row.phone_number || '',
+        company_name: row.company_name || '',
+        website_url: row.website_url || '',
+        help_message: row.message || '',
+        downloaded_brochure: row.downloaded_brochure || false,
+        created_at: row.created_at || new Date().toISOString(),
+        source: 'Panel'
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.warn('Panel DB query failed:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Fetch unified list of submissions from all 4 live database sources.
  */
 export async function getAllSubmissions() {
-  const [qonevo, makerspace, labs] = await Promise.all([
+  const [qonevo, makerspace, labs, panel] = await Promise.all([
     getQonevoContacts(),
     getMakerspaceEnquiries(),
-    getLabsSubmissions()
+    getLabsSubmissions(),
+    getPanelLeads()
   ]);
 
   const normalizedQonevo = qonevo.map(item => ({
@@ -275,7 +339,23 @@ export async function getAllSubmissions() {
     raw: item
   }));
 
-  const combined = [...normalizedQonevo, ...normalizedMakerspace, ...normalizedLabs];
+  const normalizedPanel = panel.map(item => ({
+    id: `panel-${item.id}`,
+    original_id: item.id,
+    source: 'Panel',
+    full_name: item.full_name,
+    email: item.email,
+    phone: item.phone_number,
+    company_or_institution: item.company_name,
+    website_or_type: item.website_url,
+    message: item.help_message,
+    role: 'N/A',
+    location: 'N/A',
+    created_at: item.created_at,
+    raw: item
+  }));
+
+  const combined = [...normalizedQonevo, ...normalizedMakerspace, ...normalizedLabs, ...normalizedPanel];
   combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return combined;

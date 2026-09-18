@@ -17,26 +17,21 @@ export default function Home() {
   const [qonevoData, setQonevoData] = useState([]);
   const [makerspaceData, setMakerspaceData] = useState([]);
   const [labsData, setLabsData] = useState([]);
+  const [panelData, setPanelData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Check auth session on mount
-useEffect(() => {
-  const session = localStorage.getItem('synergy_auth_session');
-  const storedEmail = localStorage.getItem('synergy_auth_user');
-
-  queueMicrotask(() => {
+  useEffect(() => {
+    const session = localStorage.getItem('synergy_auth_session');
+    const storedEmail = localStorage.getItem('synergy_auth_user');
     if (session === 'true') {
       setIsAuthenticated(true);
-      setUserEmail(
-        storedEmail || 'synergyglobal@yopmail.com'
-      );
+      setUserEmail(storedEmail || 'synergyglobal@yopmail.com');
     }
-
     setCheckingAuth(false);
-  });
-}, []);
+  }, []);
 
   // Fetch submissions data when authenticated
   useEffect(() => {
@@ -45,17 +40,19 @@ useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
-        const [resAll, resQonevo, resMakerspace, resLabs] = await Promise.all([
+        const [resAll, resQonevo, resMakerspace, resLabs, resPanel] = await Promise.all([
           fetch('/api/all-submissions').then(res => res.json()),
           fetch('/api/qonevo').then(res => res.json()),
           fetch('/api/makerspace').then(res => res.json()),
-          fetch('/api/labs').then(res => res.json())
+          fetch('/api/labs').then(res => res.json()),
+          fetch('/api/panel').then(res => res.json())
         ]);
 
         if (resAll.success) setAllData(resAll.data);
         if (resQonevo.success) setQonevoData(resQonevo.data);
         if (resMakerspace.success) setMakerspaceData(resMakerspace.data);
         if (resLabs.success) setLabsData(resLabs.data);
+        if (resPanel.success) setPanelData(resPanel.data);
       } catch (err) {
         console.error("Failed to load submissions data:", err);
       } finally {
@@ -108,7 +105,9 @@ useEffect(() => {
       ? makerspaceData 
       : activeTab === 'labs'
         ? labsData
-        : allData;
+        : activeTab === 'panel'
+          ? panelData
+          : allData;
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans">
@@ -128,7 +127,7 @@ useEffect(() => {
             Contact & Enquiry Submissions
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Centralized tabular view for <strong className="text-indigo-600 font-semibold">Qonevo</strong>, <strong className="text-emerald-600 font-semibold">Makerspace</strong> & <strong className="text-purple-600 font-semibold">Labs</strong> databases.
+            Centralized tabular view for <strong className="text-indigo-600 font-semibold">Qonevo</strong>, <strong className="text-emerald-600 font-semibold">Makerspace</strong>, <strong className="text-purple-600 font-semibold">Labs</strong> & <strong className="text-amber-600 font-semibold">Panel</strong> databases.
           </p>
         </div>
 
@@ -138,6 +137,7 @@ useEffect(() => {
           qonevoCount={qonevoData.length}
           makerspaceCount={makerspaceData.length}
           labsCount={labsData.length}
+          panelCount={panelData.length}
           data={allData}
         />
 
@@ -185,9 +185,9 @@ useEffect(() => {
               </button>
               <button
                 onClick={confirmLogout}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm cursor-pointer font-semibold text-white transition hover:bg-slate-900"
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900"
               >
-                Logout
+                Yes, Logout
               </button>
             </div>
           </div>
@@ -196,7 +196,7 @@ useEffect(() => {
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
-        Synergy | Qonevo, Makerspace & Labs Data Dashboard &copy; 2026
+        Synergy | Qonevo, Makerspace, Labs & Panel Data Dashboard &copy; 2026
       </footer>
 
     </div>
