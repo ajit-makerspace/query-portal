@@ -10,7 +10,10 @@ function useAnimatedCount(targetValue, duration = 2500) {
     let startTimestamp = null;
     const endVal = Number(targetValue) || 0;
 
-   if (endVal <= 0) return;
+    if (endVal === 0) {
+      setCount(0);
+      return;
+    }
 
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
@@ -40,7 +43,7 @@ function useChartProgress(triggerData, duration = 2500) {
 
   useEffect(() => {
     let startTimestamp = null;
-    
+    setProgress(0);
 
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
@@ -69,6 +72,7 @@ export default function StatsCards({
   qonevoCount = 0,
   makerspaceCount = 0,
   labsCount = 0,
+  panelCount = 0,
   data = []
 }) {
   const [hoveredBar, setHoveredBar] = useState(null);
@@ -81,49 +85,30 @@ export default function StatsCards({
   const animatedQonevo = useAnimatedCount(qonevoCount, 2500);
   const animatedMakerspace = useAnimatedCount(makerspaceCount, 2500);
   const animatedLabs = useAnimatedCount(labsCount, 2500);
+  const animatedPanel = useAnimatedCount(panelCount, 2500);
 
   // Animated progress (0 -> 1) for growing chart candles
   const chartProgress = useChartProgress(`${data.length}-${chartTab}`, 2500);
 
   // Synergy Dark Navy Logo Colors styling helper for selected cards
   // Outline: #1F314C (Synergy Dark Navy) | Shadow: rgba(31, 49, 76, 0.35)
-const getCardStyle = (tabKey, paddingClass = "p-4") => {
-  const isSelected = chartTab === tabKey;
-
-  if (isSelected) {
+  const getCardStyle = (tabKey, paddingClass = "p-3") => {
+    const isSelected = chartTab === tabKey;
+    if (isSelected) {
+      return {
+        style: {
+          borderColor: "#1F314C",
+          boxShadow: "0 8px 25px -4px rgba(31, 49, 76, 0.35), 0 0 0 2px #1F314C",
+          backgroundColor: "#F8FAFC"
+        },
+        className: `${paddingClass} rounded-xl cursor-pointer transition-all duration-200`
+      };
+    }
     return {
-      style: {
-        borderColor: "#E2E8F0",
-        backgroundColor: "#FFFFFF",
-        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.12)",
-        transform: "translateY(-3px)"
-      },
-      className: `
-        ${paddingClass}
-        rounded-2xl
-        border
-        cursor-pointer
-        transition-all
-        duration-200
-      `
+      style: {},
+      className: `${paddingClass} rounded-xl border border-slate-200 bg-white shadow-xs hover:border-slate-300 cursor-pointer transition-all duration-200`
     };
-  }
-
-  return {
-    style: {},
-    className: `
-      ${paddingClass}
-      rounded-2xl
-      border
-      border-slate-200
-      bg-white
-      shadow-xs
-      cursor-pointer
-      transition-all
-      duration-200
-    `
   };
-};
 
   // Compute month-wise breakdown dynamically filtered strictly for the chart
   const monthlyStackedData = useMemo(() => {
@@ -131,12 +116,13 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
 
     if (data && data.length > 0) {
       data.forEach(item => {
-        const src = item.source || (item.company_name ? 'Qonevo' : item.designation ? 'Labs Site' : 'Makerspace Site');
+        const src = item.source || (item.downloaded_brochure !== undefined ? 'Panel' : item.company_name ? 'Qonevo' : item.designation ? 'Labs Site' : 'Makerspace Site');
         
         // Filter dataset based on internal chartTab selection
         if (chartTab === 'qonevo' && src !== 'Qonevo') return;
         if (chartTab === 'makerspace' && src !== 'Makerspace Site') return;
         if (chartTab === 'labs' && src !== 'Labs Site') return;
+        if (chartTab === 'panel' && src !== 'Panel') return;
 
         const date = item.created_at ? new Date(item.created_at) : null;
         if (!date || isNaN(date.getTime())) return;
@@ -152,6 +138,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             qonevo: 0,
             makerspace: 0,
             labs: 0,
+            panel: 0,
             total: 0
           });
         }
@@ -160,6 +147,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
         if (src === 'Qonevo') m.qonevo += 1;
         else if (src === 'Makerspace Site') m.makerspace += 1;
         else if (src === 'Labs Site') m.labs += 1;
+        else if (src === 'Panel') m.panel += 1;
         m.total += 1;
       });
     }
@@ -180,6 +168,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
           qonevo: 0,
           makerspace: 0,
           labs: 0,
+          panel: 0,
           total: 0
         });
       }
@@ -210,14 +199,15 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
   const calcH = (val) => (val / maxVal) * plotHeight;
 
   const totalCard = getCardStyle('all', 'p-5');
-  const qonevoCard = getCardStyle('qonevo', 'p-4');
-  const makerspaceCard = getCardStyle('makerspace', 'p-4');
-  const labsCard = getCardStyle('labs', 'p-4');
+  const qonevoCard = getCardStyle('qonevo', 'p-3');
+  const makerspaceCard = getCardStyle('makerspace', 'p-3');
+  const labsCard = getCardStyle('labs', 'p-3');
+  const panelCard = getCardStyle('panel', 'p-3');
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
       
-      {/* LEFT SECTION: Total Submissions Header & 3 Portal Share Cards */}
+      {/* LEFT SECTION: Total Submissions Header & 4 Portal Share Cards */}
       <div className="lg:col-span-5 flex flex-col gap-4">
         
         {/* Total Submissions Main Card */}
@@ -240,15 +230,15 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Aggregated live across Qonevo, Makerspace & Labs Site databases
+              Aggregated live across Qonevo, Makerspace, Labs Site & Panel databases
             </p>
           </div>
         </div>
 
-        {/* Sub-sections: Qonevo, Makerspace & Labs Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+        {/* Sub-sections: 4 Cards (QONEVO, MAKERSPACE, LABS SITE, PANEL) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1">
           
-          {/* Qonevo Sub-section */}
+          {/* 1. Qonevo Card */}
           <div
             onClick={() => setChartTab('qonevo')}
             style={qonevoCard.style}
@@ -256,12 +246,12 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             title="Click to view Qonevo monthly chart"
           >
             <div className="text-center mb-1">
-              <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider truncate block">
                 Qonevo
               </span>
             </div>
             <div>
-              <p className="text-3xl font-black text-slate-900 text-center transition-all">{animatedQonevo}</p>
+              <p className="text-2xl font-black text-slate-900 text-center transition-all">{animatedQonevo}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
                   className="bg-indigo-600 h-full rounded-full transition-all duration-1000 ease-out"
@@ -270,7 +260,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                   }}
                 ></div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1.5 flex justify-between font-medium">
+              <p className="text-[9px] text-slate-500 mt-1.5 flex justify-between font-medium">
                 <span>Share</span>
                 <span className="font-bold text-slate-700">
                   {totalCount > 0 ? ((qonevoCount / totalCount) * 100).toFixed(0) : 0}%
@@ -279,7 +269,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             </div>
           </div>
 
-          {/* Makerspace Sub-section */}
+          {/* 2. Makerspace Card */}
           <div
             onClick={() => setChartTab('makerspace')}
             style={makerspaceCard.style}
@@ -287,12 +277,12 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             title="Click to view Makerspace monthly chart"
           >
             <div className="text-center mb-1">
-              <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider truncate block">
                 Makerspace
               </span>
             </div>
             <div>
-              <p className="text-3xl font-black text-slate-900 text-center transition-all">{animatedMakerspace}</p>
+              <p className="text-2xl font-black text-slate-900 text-center transition-all">{animatedMakerspace}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
                   className="bg-emerald-600 h-full rounded-full transition-all duration-1000 ease-out"
@@ -301,7 +291,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                   }}
                 ></div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1.5 flex justify-between font-medium">
+              <p className="text-[9px] text-slate-500 mt-1.5 flex justify-between font-medium">
                 <span>Share</span>
                 <span className="font-bold text-slate-700">
                   {totalCount > 0 ? ((makerspaceCount / totalCount) * 100).toFixed(0) : 0}%
@@ -310,7 +300,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             </div>
           </div>
 
-          {/* Labs Sub-section */}
+          {/* 3. Labs Site Card */}
           <div
             onClick={() => setChartTab('labs')}
             style={labsCard.style}
@@ -318,12 +308,12 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
             title="Click to view Labs Site monthly chart"
           >
             <div className="text-center mb-1">
-              <span className="text-[11px] font-bold text-purple-600 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider truncate block">
                 Labs Site
               </span>
             </div>
             <div>
-              <p className="text-3xl font-black text-slate-900 text-center transition-all">{animatedLabs}</p>
+              <p className="text-2xl font-black text-slate-900 text-center transition-all">{animatedLabs}</p>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
                   className="bg-purple-600 h-full rounded-full transition-all duration-1000 ease-out"
@@ -332,10 +322,41 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                   }}
                 ></div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1.5 flex justify-between font-medium">
+              <p className="text-[9px] text-slate-500 mt-1.5 flex justify-between font-medium">
                 <span>Share</span>
                 <span className="font-bold text-slate-700">
                   {totalCount > 0 ? ((labsCount / totalCount) * 100).toFixed(0) : 0}%
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* 4. Panel Card (Just right of Labs Site - panel.qonevo.in) */}
+          <div
+            onClick={() => setChartTab('panel')}
+            style={panelCard.style}
+            className={`${panelCard.className} flex flex-col justify-between text-center`}
+            title="Click to view Panel (panel.qonevo.in) monthly chart"
+          >
+            <div className="text-center mb-1">
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider truncate block">
+                Panel
+              </span>
+            </div>
+            <div>
+              <p className="text-2xl font-black text-slate-900 text-center transition-all">{animatedPanel}</p>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div
+                  className="bg-amber-500 h-full rounded-full transition-all duration-1000 ease-out"
+                  style={{
+                    width: `${totalCount > 0 ? (animatedPanel / totalCount) * 100 : 0}%`,
+                  }}
+                ></div>
+              </div>
+              <p className="text-[9px] text-slate-500 mt-1.5 flex justify-between font-medium">
+                <span>Share</span>
+                <span className="font-bold text-slate-700">
+                  {totalCount > 0 ? ((panelCount / totalCount) * 100).toFixed(0) : 0}%
                 </span>
               </p>
             </div>
@@ -357,6 +378,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                 {chartTab === 'qonevo' && 'Qonevo Monthly Breakdown'}
                 {chartTab === 'makerspace' && 'Makerspace Monthly Breakdown'}
                 {chartTab === 'labs' && 'Labs Site Monthly Breakdown'}
+                {chartTab === 'panel' && 'Panel Monthly Breakdown'}
               </span>
               <span className="text-[10px] uppercase font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
                 Live Stream
@@ -370,23 +392,29 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center space-x-4 text-xs font-semibold">
+          <div className="flex items-center space-x-3 text-xs font-semibold">
             {(chartTab === 'all' || chartTab === 'qonevo') && (
-              <div className="flex items-center space-x-1.5">
-                <span className="w-3 h-3 rounded-xs bg-indigo-600 inline-block shadow-2xs"></span>
+              <div className="flex items-center space-x-1">
+                <span className="w-2.5 h-2.5 rounded-xs bg-indigo-600 inline-block shadow-2xs"></span>
                 <span className="text-slate-700 font-medium">Qonevo</span>
               </div>
             )}
             {(chartTab === 'all' || chartTab === 'makerspace') && (
-              <div className="flex items-center space-x-1.5">
-                <span className="w-3 h-3 rounded-xs bg-emerald-500 inline-block shadow-2xs"></span>
+              <div className="flex items-center space-x-1">
+                <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block shadow-2xs"></span>
                 <span className="text-slate-700 font-medium">Makerspace</span>
               </div>
             )}
             {(chartTab === 'all' || chartTab === 'labs') && (
-              <div className="flex items-center space-x-1.5">
-                <span className="w-3 h-3 rounded-xs bg-purple-600 inline-block shadow-2xs"></span>
+              <div className="flex items-center space-x-1">
+                <span className="w-2.5 h-2.5 rounded-xs bg-purple-600 inline-block shadow-2xs"></span>
                 <span className="text-slate-700 font-medium">Labs</span>
+              </div>
+            )}
+            {(chartTab === 'all' || chartTab === 'panel') && (
+              <div className="flex items-center space-x-1">
+                <span className="w-2.5 h-2.5 rounded-xs bg-amber-500 inline-block shadow-2xs"></span>
+                <span className="text-slate-700 font-medium">Panel</span>
               </div>
             )}
           </div>
@@ -467,16 +495,19 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
               const fullQonevoH = calcH(item.qonevo);
               const fullMakerspaceH = calcH(item.makerspace);
               const fullLabsH = calcH(item.labs);
+              const fullPanelH = calcH(item.panel);
               const fullTotalH = calcH(item.total);
 
               const animatedQonevoH = fullQonevoH * chartProgress;
               const animatedMakerspaceH = fullMakerspaceH * chartProgress;
               const animatedLabsH = fullLabsH * chartProgress;
+              const animatedPanelH = fullPanelH * chartProgress;
               const animatedTotalH = fullTotalH * chartProgress;
 
               const qonevoY = baselineY - animatedQonevoH;
               const makerspaceY = qonevoY - animatedMakerspaceH;
               const labsY = makerspaceY - animatedLabsH;
+              const panelY = labsY - animatedPanelH;
 
               const currentPillCount = Math.floor(item.total * chartProgress);
               const isHovered = hoveredBar?.month === item.month;
@@ -514,7 +545,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                       />
                     )}
 
-                    {/* Middle Stack: Makerspace */}
+                    {/* Stack 2: Makerspace */}
                     {item.makerspace > 0 && (
                       <rect
                         x={xPos}
@@ -525,7 +556,7 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                       />
                     )}
 
-                    {/* Top Stack: Labs */}
+                    {/* Stack 3: Labs */}
                     {item.labs > 0 && (
                       <rect
                         x={xPos}
@@ -533,6 +564,17 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
                         width={colWidth}
                         height={animatedLabsH + 0.5}
                         fill="#9333EA"
+                      />
+                    )}
+
+                    {/* Stack 4: Panel */}
+                    {item.panel > 0 && (
+                      <rect
+                        x={xPos}
+                        y={panelY}
+                        width={colWidth}
+                        height={animatedPanelH + 0.5}
+                        fill="#F59E0B"
                       />
                     )}
                   </g>
@@ -594,12 +636,12 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
         {/* Footer Interaction Bar */}
         <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           {hoveredBar ? (
-            <div className="flex items-center space-x-3 text-xs font-semibold text-slate-700 animate-fadeIn">
+            <div className="flex items-center space-x-2 text-[11px] font-semibold text-slate-700 animate-fadeIn">
               <span className="text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
                 {hoveredBar.month}
               </span>
               <span>
-                Month Total: <strong className="text-slate-900">{hoveredBar.total}</strong>
+                Total: <strong className="text-slate-900">{hoveredBar.total}</strong>
               </span>
               <span className="text-slate-300">|</span>
               {(chartTab === 'all' || chartTab === 'qonevo') && (
@@ -615,6 +657,11 @@ const getCardStyle = (tabKey, paddingClass = "p-4") => {
               {(chartTab === 'all' || chartTab === 'labs') && (
                 <span className="text-purple-600 font-bold">
                   Labs: {hoveredBar.labs}
+                </span>
+              )}
+              {(chartTab === 'all' || chartTab === 'panel') && (
+                <span className="text-amber-600 font-bold">
+                  Panel: {hoveredBar.panel}
                 </span>
               )}
             </div>
