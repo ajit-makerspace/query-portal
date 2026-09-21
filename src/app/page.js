@@ -33,26 +33,38 @@ export default function Home() {
     setCheckingAuth(false);
   }, []);
 
-  // Fetch submissions data when authenticated
+  // Fetch submissions data when authenticated with error safety
   useEffect(() => {
     if (!isAuthenticated) return;
 
     async function fetchData() {
       setLoading(true);
+
+      const safeFetchJson = async (url) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return { success: false, data: [] };
+          return await res.json();
+        } catch (err) {
+          console.error(`Failed fetching ${url}:`, err);
+          return { success: false, data: [] };
+        }
+      };
+
       try {
         const [resAll, resQonevo, resMakerspace, resLabs, resPanel] = await Promise.all([
-          fetch('/api/all-submissions').then(res => res.json()),
-          fetch('/api/qonevo').then(res => res.json()),
-          fetch('/api/makerspace').then(res => res.json()),
-          fetch('/api/labs').then(res => res.json()),
-          fetch('/api/panel').then(res => res.json())
+          safeFetchJson('/api/all-submissions'),
+          safeFetchJson('/api/qonevo'),
+          safeFetchJson('/api/makerspace'),
+          safeFetchJson('/api/labs'),
+          safeFetchJson('/api/panel')
         ]);
 
-        if (resAll.success) setAllData(resAll.data);
-        if (resQonevo.success) setQonevoData(resQonevo.data);
-        if (resMakerspace.success) setMakerspaceData(resMakerspace.data);
-        if (resLabs.success) setLabsData(resLabs.data);
-        if (resPanel.success) setPanelData(resPanel.data);
+        if (resAll?.success && Array.isArray(resAll.data)) setAllData(resAll.data);
+        if (resQonevo?.success && Array.isArray(resQonevo.data)) setQonevoData(resQonevo.data);
+        if (resMakerspace?.success && Array.isArray(resMakerspace.data)) setMakerspaceData(resMakerspace.data);
+        if (resLabs?.success && Array.isArray(resLabs.data)) setLabsData(resLabs.data);
+        if (resPanel?.success && Array.isArray(resPanel.data)) setPanelData(resPanel.data);
       } catch (err) {
         console.error("Failed to load submissions data:", err);
       } finally {
